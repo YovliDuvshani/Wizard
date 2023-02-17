@@ -1,6 +1,6 @@
 import pandas as pd
 
-from card import Card
+from wizard.card import Card
 
 
 class AdapterCsv:
@@ -17,13 +17,19 @@ class AdapterCsvTwoCards(AdapterCsv):
 
     def base_csv_to_csv_all_combinations(self):
         df = pd.read_csv(self.path)
-        df_copy = df.copy().rename(columns={'first_card': 'second_card', 'second_card': 'first_card'})
+        df_copy = df.copy().rename(
+            columns={"first_card": "second_card", "second_card": "first_card"}
+        )
         df_all_combinations = pd.concat((df, df_copy))
         return df_all_combinations
 
 
 class ReadableStatTable:
-    def __init__(self, stat_table: pd.DataFrame, ranking_colors: list[str] = ['RED', 'BLUE', 'GREEN', 'YELLOW']):
+    def __init__(
+        self,
+        stat_table: pd.DataFrame,
+        ranking_colors: list[str] = ["RED", "BLUE", "GREEN", "YELLOW"],
+    ):
         self.stat_table = stat_table
         self.ranking_colors = ranking_colors
 
@@ -84,6 +90,8 @@ class StatTableTwoCards(ReadableStatTable):
     def get_info_hand(self, cards: list[Card]):
         cards_to_read_proba = self._replace_hands_color_to_get_proba(cards)
         list_readable_string = self.hand_to_readable_string(cards_to_read_proba)
-        df_info = self.stat_table[(self.stat_table["first_card"] == list_readable_string[0]) & (
-                    self.stat_table["second_card"] == list_readable_string[1])]
+        df_info = self.stat_table[
+            (self.stat_table["first_card"] == list_readable_string[0])
+            & (self.stat_table["second_card"] == list_readable_string[1])
+        ]
         return df_info

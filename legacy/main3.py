@@ -1,7 +1,7 @@
-from adapters import AdapterCsvTwoCards, AdapterCsvInfoTwoCards
-from card import Card
+from legacy.adapters import AdapterCsvTwoCards, AdapterCsvInfoTwoCards
+from wizard.card import Card
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # game_manager = GameManagerTwoCardsFirstPlayer(number_trial=100)
     # game_manager.simulate()
     """
@@ -24,8 +24,11 @@ if __name__ == '__main__':
 
     adapter_to_info.assign_table(adapter.base_csv_to_csv_all_combinations())
     print(adapter.base_csv_to_csv_all_combinations().columns)
-    card1 = Card(color="RED",number=12,special_card=None)
-    card2 = Card(color="RED",number=5,special_card=None)
+    card1 = Card(color="RED", number=12, special_card=None)
+    card2 = Card(color="RED", number=5, special_card=None)
 
-    print(adapter_to_info.get_info_hand([card1,card2]).best_outcome_prediction_2.values[0])
-
+    print(
+        adapter_to_info.get_info_hand([card1, card2]).best_outcome_prediction_2.values[
+            0
+        ]
+    )
