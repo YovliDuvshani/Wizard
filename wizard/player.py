@@ -1,5 +1,5 @@
 import abc
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 
@@ -18,8 +18,11 @@ class Player(abc.ABC):
         self.game = game
 
     def receive_cards(self, cards: List[Card]):
-        self.cards = cards
-        self.initial_cards = cards.copy()
+        if not self.cards:
+            self.cards = cards
+            self.initial_cards = cards.copy()
+        # else:
+        #     print(f"Player {self.identifier} has already cards")
 
     def _filter_playable_cards_relatively_to_first_color_played(
         self, first_color: Color
@@ -62,6 +65,9 @@ class Player(abc.ABC):
                 )
         return list(range(NUMBER_CARDS_PER_PLAYER + 1))
 
+    def reset_hand(self) -> None:
+        self.cards = self.initial_cards.copy()
+
     def make_prediction(self) -> int:
         pass
 
@@ -84,11 +90,17 @@ class RandomPlayer(Player):
         return card_to_play
 
 
-class PreDefinedStrategyPlayer(Player):
-    def __init__(
-        self, identifier: int, cards_ordered_by_priority: list[Card], prediction: int
-    ):
+class DefinedStrategyPlayer(Player):
+    def __init__(self, identifier: int):
         super().__init__(identifier=identifier)
+        self.cards_ordered_by_priority: Optional[List[Card]] = None
+        self.prediction: Optional[int] = None
+
+    def provide_strategy(
+        self,
+        cards_ordered_by_priority: Optional[List[Card]] = None,
+        prediction: Optional[int] = None,
+    ):
         self.cards_ordered_by_priority = cards_ordered_by_priority
         self.prediction = prediction
 

@@ -4,6 +4,7 @@ from typing import List
 
 from config.common import JESTER_NAME, MAGICIAN_NAME, TRUMP_COLOR, BASE_COLORS
 from wizard.card import Card
+from wizard.common import iterator_to_list_of_list
 from wizard.deck import Deck
 
 
@@ -17,7 +18,7 @@ class HandCombinations(abc.ABC):
 
     @staticmethod
     def _get_all_subset_size_n(list_cards: List[Card], n: int) -> List[List[Card]]:
-        return list(itertools.combinations(list_cards, n))
+        return iterator_to_list_of_list(itertools.combinations(list_cards, n))
 
 
 # noinspection PyTypeChecker
@@ -60,7 +61,9 @@ class HandCombinationsTwoCards(HandCombinations):
         only_one_color = self.deck.filter_deck(
             colors=[BASE_COLORS[1]], keep_joker=False, keep_joker_duplicates=False
         )
-        return list(itertools.product(only_trumps_and_joker, only_one_color))
+        return iterator_to_list_of_list(
+            itertools.product(only_trumps_and_joker, only_one_color)
+        )
 
     def _get_combinations_two_others(self) -> List[List[Card]]:
         only_one_color = self.deck.filter_deck(
@@ -83,7 +86,9 @@ class HandCombinationsTwoCards(HandCombinations):
     def _get_unique_pairs_from_two_colors(
         one_color: List[Card], other_color: List[Card]
     ) -> List[List[Card]]:
-        all_pairs_from_two_colors = list(itertools.product(one_color, other_color))
+        all_pairs_from_two_colors = iterator_to_list_of_list(
+            itertools.product(one_color, other_color)
+        )
         return [
             pair
             for pair in all_pairs_from_two_colors

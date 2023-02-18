@@ -92,6 +92,20 @@ class TestPlayedCard:
                 True,
                 id="first_color_vs_other_color",
             ),
+            pytest.param(
+                PlayedCard(
+                    card=Card(special_card=JESTER_NAME),
+                    starting_color=BASE_COLORS[1],
+                    card_position=1,
+                ),
+                PlayedCard(
+                    card=Card(number=13, color=BASE_COLORS[2]),
+                    starting_color=BASE_COLORS[1],
+                    card_position=0,
+                ),
+                False,
+                id="jester_vs_other",
+            ),
         ],
     )
     def test_gt_operator_returns_is_correct(

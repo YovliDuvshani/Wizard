@@ -1,4 +1,5 @@
-from typing import Optional
+import random
+from typing import Optional, List
 
 import numpy as np
 
@@ -56,6 +57,16 @@ class Deck:
                 joker_already_added += [card.special_card]
         return filtered_cards
 
+    def shuffle(self) -> None:
+        random.shuffle(self.cards)
+
+    def remove_cards(self, cards_to_suppress: List[Card]):
+        for card_to_suppress in cards_to_suppress:
+            for card in self.cards:
+                if card == card_to_suppress:
+                    self.cards.remove(card)
+                    break
+
     @property
     def number_cards_per_color(self):
         return len(SUITS)
@@ -71,17 +82,3 @@ class Deck:
     @property
     def number_wizards(self):
         return NUMBER_OF_MAGICIANS
-
-
-class FilteredDeck(Deck):
-    def __init__(self, cards_to_suppress):
-        self.cards = self.create_filtered_new_deck(cards_to_suppress)
-
-    def create_filtered_new_deck(self, cards_to_suppress):
-        cards = self._create_new_deck()
-        for card_to_suppress in cards_to_suppress:
-            for card in cards:
-                if card == card_to_suppress:
-                    cards.remove(card)
-                    break
-        return cards

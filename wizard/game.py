@@ -4,11 +4,9 @@ from config.common import (
     NUMBER_OF_PLAYERS,
     NUMBER_CARDS_PER_PLAYER,
     TRUMP_COLOR,
-    DYNAMIC_REWARD,
-    BASE_REWARD,
-    DYNAMIC_LOSS,
 )
 from wizard.card import Card
+from wizard.count_points import CountPoints
 from wizard.deck import Deck
 from wizard.player import Player
 from wizard.evaluate_turn import EvaluateTurn
@@ -16,12 +14,12 @@ from wizard.played_card import PlayedCard
 
 
 class Game:
-    def __init__(self, id_game: int):
+    def __init__(self, id_game: Optional[int] = None):
         self.id_game = id_game
-        self.current_turn_history: List[PlayedCard] = []
-        self.previous_turns_history: List[List[PlayedCard]] = []
-        self.initial_predictions: Dict[Player, int] = {}
-        self.number_of_turns_won: Dict[Player, int] = {}
+        self.current_turn_history: Optional[List[PlayedCard]] = None
+        self.previous_turns_history: Optional[List[List[PlayedCard]]] = None
+        self.initial_predictions: Optional[Dict[Player, int]] = None
+        self.number_of_turns_won: Optional[Dict[Player, int]] = None
         self.players: Optional[List[Player]] = None
         self.deck: Optional[Deck] = None
         self.player_starting: Optional[Player] = None
@@ -40,6 +38,7 @@ class Game:
         self.deck = deck
 
     def _assign_players(self, players: List[Player]) -> None:
+        self.number_of_turns_won = {}
         self.players = players
         for player in self.players:
             player.assign_game(self)
@@ -61,14 +60,16 @@ class Game:
         ), "Not enough cards"
 
         for player in self.players:
-            player.cards = self.deck.cards[0:NUMBER_CARDS_PER_PLAYER]
+            player.receive_cards(self.deck.cards[0:NUMBER_CARDS_PER_PLAYER])
             self.deck.cards = self.deck.cards[NUMBER_CARDS_PER_PLAYER:]
 
     def request_predictions(self) -> None:
+        self.initial_predictions = {}
         for player in self.players:
             self.initial_predictions[player] = player.make_prediction()
 
     def play_turn(self, print_results: bool) -> None:
+        self.current_turn_history = []
         starting_color = None
         for position, player in enumerate(self.ordered_list_players):
             card = player.play_card()
@@ -91,9 +92,9 @@ class Game:
             self.display_result_turn(
                 played_cards=self.current_turn_history, winner=winner
             )
-        self.current_turn_history = []
 
     def play_round(self, print_results: bool = False) -> None:
+        self.previous_turns_history = []
         for turn in range(NUMBER_CARDS_PER_PLAYER):
             self.play_turn(print_results=print_results)
 
@@ -104,22 +105,13 @@ class Game:
             self.players[index_starting_player:] + self.players[:index_starting_player]
         )
 
-    def count_points(self):
-        score: Dict[Player, int] = {}
+    def reset_game(self):
         for player in self.players:
-            if self.initial_predictions[player] == self.number_of_turns_won[player]:
-                score[player] = int(
-                    (DYNAMIC_REWARD * self.initial_predictions[player] + BASE_REWARD)
-                )
-            else:
-                score[player] = int(
-                    DYNAMIC_LOSS
-                    * abs(
-                        self.initial_predictions[player]
-                        - self.number_of_turns_won[player]
-                    )
-                )
-        return score
+            player.reset_hand()
+            if self.number_of_turns_won:
+                self.number_of_turns_won[player] = 0
+            if self.initial_predictions:
+                self.initial_predictions[player] = 0
 
     @property
     def number_played_turns(self) -> int:
@@ -142,10 +134,14 @@ class Game:
 
     def display_result_each_player(self):
         print("--- RESULT EACH PLAYER ---")
+        points_each_player = CountPoints().count_points_round(
+            predictions=self.initial_predictions,
+            number_of_turns_won=self.number_of_turns_won,
+        )
         for player in self.players:
             print(
                 f"Player {player.identifier} annonced {self.initial_predictions[player]}"
-                f" won {self.number_of_turns_won[player]} got {self.count_points()[player]} points"
+                f" won {self.number_of_turns_won[player]} got {points_each_player[player]} points"
             )
 
     def display_result_turn(self, played_cards: List[PlayedCard], winner: PlayedCard):
