@@ -2,14 +2,14 @@ from typing import Optional
 
 from config.common import TRUMP_COLOR, MAGICIAN_NAME, JESTER_NAME
 from wizard.player import Player
-from wizard.card import Card, Color
+from wizard.card import Card
 
 
 class PlayedCard:
     def __init__(
         self,
         card: Card,
-        starting_color: Color,
+        starting_color: str,
         card_position: int,
         player: Optional[Player] = None,
     ):
@@ -32,7 +32,7 @@ class PlayedCard:
                 ]:
                     return True
                 return False
-            elif self.card_position < other.card_position:
+            if self.card_position < other.card_position:
                 if (
                     self.card.special_card == MAGICIAN_NAME
                     or other.card.special_card == JESTER_NAME

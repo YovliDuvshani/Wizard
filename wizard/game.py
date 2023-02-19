@@ -22,6 +22,7 @@ class Game:
         self.number_of_turns_won: Optional[Dict[Player, int]] = None
         self.players: Optional[List[Player]] = None
         self.deck: Optional[Deck] = None
+        self.initial_player_starting: Optional[Player] = None
         self.player_starting: Optional[Player] = None
         self.trump_card_removed: Optional[Card] = None
 
@@ -32,7 +33,9 @@ class Game:
         self._assign_players(players)
         self._remove_one_trump_card()
         self._distribute_cards()
+
         self.player_starting = first_player
+        self.initial_player_starting = first_player
 
     def _assign_deck(self, deck: Deck) -> None:
         self.deck = deck
@@ -60,17 +63,20 @@ class Game:
         ), "Not enough cards"
 
         for player in self.players:
-            player.receive_cards(self.deck.cards[0:NUMBER_CARDS_PER_PLAYER])
-            self.deck.cards = self.deck.cards[NUMBER_CARDS_PER_PLAYER:]
+            player_has_received_cards = player.receive_cards(
+                self.deck.cards[0:NUMBER_CARDS_PER_PLAYER]
+            )
+            if player_has_received_cards:
+                self.deck.cards = self.deck.cards[NUMBER_CARDS_PER_PLAYER:]
 
     def request_predictions(self) -> None:
         self.initial_predictions = {}
         for player in self.players:
             self.initial_predictions[player] = player.make_prediction()
 
-    def play_turn(self, print_results: bool) -> None:
+    def _play_turn(self, print_results: bool) -> None:
         self.current_turn_history = []
-        starting_color = None
+        starting_color: Optional[str] = None
         for position, player in enumerate(self.ordered_list_players):
             card = player.play_card()
             if card.color and (not starting_color):
@@ -96,7 +102,7 @@ class Game:
     def play_round(self, print_results: bool = False) -> None:
         self.previous_turns_history = []
         for turn in range(NUMBER_CARDS_PER_PLAYER):
-            self.play_turn(print_results=print_results)
+            self._play_turn(print_results=print_results)
 
     @property
     def ordered_list_players(self) -> List[Player]:
@@ -106,6 +112,7 @@ class Game:
         )
 
     def reset_game(self):
+        self.player_starting = self.initial_player_starting
         for player in self.players:
             player.reset_hand()
             if self.number_of_turns_won:
@@ -115,7 +122,9 @@ class Game:
 
     @property
     def number_played_turns(self) -> int:
-        return len(self.previous_turns_history)
+        if self.previous_turns_history:
+            return len(self.previous_turns_history)
+        return 0
 
     def display_hand_each_player(self):
         print("--- HAND EACH PLAYER ---")

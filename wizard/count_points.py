@@ -17,7 +17,7 @@ class CountPoints:
         number_of_turns_won: Dict[Union[int, Player], int],
     ):
         score: Dict[Union[int, Player], int] = {}
-        for identifier in predictions.keys():
+        for identifier in predictions:
             score[identifier] = self.count_points_single_prediction(
                 prediction=predictions[identifier],
                 number_of_turns_won=number_of_turns_won[identifier],

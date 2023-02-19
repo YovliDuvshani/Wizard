@@ -16,7 +16,7 @@ from wizard.card import Card
 
 # noinspection PyTypeChecker
 class Deck:
-    def __init__(self, shuffle: Optional[bool] = True):
+    def __init__(self, shuffle: bool = True):
         self.cards = self._create_new_deck(shuffle=shuffle)
 
     @staticmethod

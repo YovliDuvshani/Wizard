@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Dict
+from typing import Dict
 
 
 @dataclass
@@ -16,3 +16,4 @@ class SimulationResultMetadata:
     learning_player_id: int
     number_of_players: int
     number_of_cards_per_player: int
+    total_number_trial: int

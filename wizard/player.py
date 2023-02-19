@@ -4,14 +4,14 @@ from typing import List, Optional
 import numpy as np
 
 from config.common import NUMBER_CARDS_PER_PLAYER
-from wizard.card import Card, Color
+from wizard.card import Card
 
 
 class Player(abc.ABC):
     def __init__(self, identifier: int):
         self.cards: List[Card] = []
         self.initial_cards: List[Card] = []
-        self.game = None
+        self.game: object = None
         self.identifier = identifier
 
     def assign_game(self, game: object):
@@ -21,11 +21,13 @@ class Player(abc.ABC):
         if not self.cards:
             self.cards = cards
             self.initial_cards = cards.copy()
+            return True
+        return False
         # else:
         #     print(f"Player {self.identifier} has already cards")
 
     def _filter_playable_cards_relatively_to_first_color_played(
-        self, first_color: Color
+        self, first_color: str
     ) -> List[Card]:
         cards_from_required_color: List[Card] = []
         special_cards: List[Card] = []
@@ -36,8 +38,7 @@ class Player(abc.ABC):
                     special_cards += [card]
         if cards_from_required_color:
             return cards_from_required_color + special_cards
-        else:
-            return self.cards
+        return self.cards
 
     def _playable_cards(self) -> List[Card]:
         if self.game.current_turn_history:
@@ -68,16 +69,17 @@ class Player(abc.ABC):
     def reset_hand(self) -> None:
         self.cards = self.initial_cards.copy()
 
+    @abc.abstractmethod
     def make_prediction(self) -> int:
         pass
 
+    @abc.abstractmethod
     def play_card(self) -> Card:
         """
         Play a card during a turn following a strategy.
         The card both needs to be played and be removed from the hand of the Player.
         :return: Card that is played
         """
-        pass
 
 
 class RandomPlayer(Player):
@@ -105,12 +107,14 @@ class DefinedStrategyPlayer(Player):
         self.prediction = prediction
 
     def play_card(self) -> Card:
+        assert self.cards_ordered_by_priority, "No priority given"
         for card in self.cards_ordered_by_priority:
             if card in self._playable_cards():
                 self.cards.remove(card)
                 return card
 
     def make_prediction(self) -> int:
+        assert self.prediction, "No prediction given"
         if self.prediction in self._possible_predictions():
             return self.prediction
         return self.prediction + 1

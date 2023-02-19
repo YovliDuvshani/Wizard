@@ -1,7 +1,8 @@
+import pytest
+
 from config.common import MAGICIAN_NAME, BASE_COLORS, JESTER_NAME, TRUMP_COLOR
 from wizard.card import Card
 from wizard.played_card import PlayedCard
-import pytest
 
 
 class TestPlayedCard:

@@ -3,6 +3,7 @@ from typing import Optional
 import pandas as pd
 
 from config.common import NUMBER_CARDS_PER_PLAYER
+from wizard.card import Card
 from wizard.count_points import CountPoints
 
 
@@ -32,11 +33,11 @@ class SurveySimulationResult:
             else:
                 mean_worst_outcome_per_order_each_prediction = (
                     mean_worst_outcome_per_order_each_prediction.merge(
-                        mean_worst_outcome_per_order_given_prediction,
+                        right=mean_worst_outcome_per_order_given_prediction,
                         on=["tested_combination", "combination_played_order"],
                     )
                 )
-        return mean_worst_outcome_per_order_each_prediction
+        return self.sort_per_combination(mean_worst_outcome_per_order_each_prediction)
 
     @property
     def evaluated_predictions(self):
@@ -75,3 +76,16 @@ class SurveySimulationResult:
         )
 
         return simulation_results
+
+    @staticmethod
+    def sort_per_combination(simulation_results: pd.DataFrame):
+        assert "tested_combination" in simulation_results.columns
+        simulation_results["tested_combination_card_format"] = simulation_results[
+            "tested_combination"
+        ].apply(lambda row: list(map(Card.from_representation, row.split(" - "))))
+        simulation_results["tested_combination_card_format"].apply(
+            lambda row: row.sort(reverse=True)
+        )
+        return simulation_results.sort_values(
+            "tested_combination_card_format", ascending=False
+        ).drop(columns="tested_combination_card_format")

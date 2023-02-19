@@ -46,7 +46,7 @@ class SimulatorWithOneLearningPlayer(Simulator):
             raise LearningPlayerNotPlaying
         self.learning_player = learning_player
         self.number_trial_each_combination = number_trial_each_combination
-        if NUMBER_CARDS_PER_PLAYER not in IMPLEMENTED_COMBINATIONS.keys():
+        if NUMBER_CARDS_PER_PLAYER not in IMPLEMENTED_COMBINATIONS:
             raise CombinationNotImplemented
         self.hand_combinations_class = IMPLEMENTED_COMBINATIONS[NUMBER_CARDS_PER_PLAYER]
         self.result_logger: Optional[List[SimulationResult]] = None
@@ -60,9 +60,9 @@ class SimulatorWithOneLearningPlayer(Simulator):
         for combination in hand_combinations:
             deck = deepcopy(self.initial_deck)
             deck.remove_cards(cards_to_suppress=combination)
-            self.assign_cards_to_learning_player(combination)
+            self._assign_cards_to_learning_player(combination)
             for trial_number in range(self.number_trial_each_combination):
-                self.reset_only_learning_player()
+                self._reset_only_learning_player()
                 deck.shuffle()
                 game = Game()
                 game.initialize_game(
@@ -70,12 +70,12 @@ class SimulatorWithOneLearningPlayer(Simulator):
                     players=self.players,
                     first_player=self.first_player,
                 )
-                self.simulate_all_outcome_one_round(
+                self._simulate_all_outcome_one_round(
                     game=game, trial_number=trial_number, combination=combination
                 )
         return self.result_logger
 
-    def simulate_all_outcome_one_round(
+    def _simulate_all_outcome_one_round(
         self, game: Game, trial_number: int, combination: List[Card]
     ):
         all_playing_order_per_player: List[List[List[Card]]] = [
@@ -86,14 +86,14 @@ class SimulatorWithOneLearningPlayer(Simulator):
             itertools.product(*all_playing_order_per_player)
         )
         for playing_order in all_playing_order:
-            self.simulate_one_outcome_one_round(
+            self._simulate_one_outcome_one_round(
                 game=game,
                 playing_order=playing_order,
                 trial_number=trial_number,
                 combination=combination,
             )
 
-    def simulate_one_outcome_one_round(
+    def _simulate_one_outcome_one_round(
         self,
         game: Game,
         playing_order: List[List[Card]],
@@ -129,10 +129,10 @@ class SimulatorWithOneLearningPlayer(Simulator):
             )
         )
 
-    def assign_cards_to_learning_player(self, combination: List[Card]) -> None:
+    def _assign_cards_to_learning_player(self, combination: List[Card]) -> None:
         self.learning_player.receive_cards(combination)
 
-    def reset_only_learning_player(self) -> None:
+    def _reset_only_learning_player(self) -> None:
         self.learning_player.reset_hand()
 
 
