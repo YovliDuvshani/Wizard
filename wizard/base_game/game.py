@@ -33,8 +33,8 @@ class GameRoundSpecifics:
 class GameState:
     predictions: Dict[Player, Optional[int]]
     number_of_turns_won: Dict[Player, int]
+    winner_history: List[PlayedCard]
     previous_turns_history: List[List[PlayedCard]]
-    is_start_of_game: bool
     round_specifics: GameRoundSpecifics
 
 
@@ -90,7 +90,7 @@ class Game:
             predictions=dict.fromkeys(self.definition.players, None),
             number_of_turns_won=dict.fromkeys(self.definition.players, 0),
             previous_turns_history=[],
-            is_start_of_game=True,
+            winner_history=[],
             round_specifics=GameRoundSpecifics(
                 turn_history=[],
                 player_starting=self.definition.initial_player_starting,
@@ -151,6 +151,7 @@ class Game:
         winner = max(self.state.round_specifics.turn_history)
 
         self.state.number_of_turns_won[winner.player] += 1
+        self.state.winner_history += [winner]
         self.state.previous_turns_history += [self.state.round_specifics.turn_history]
         if print_results:
             GameDisplayer(self).display_result_round(

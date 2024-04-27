@@ -29,7 +29,9 @@ for _ in range(1000):
     while not terminal:
         features = ComputeFeatures(game, learning_player).execute()
         terminal = game.get_to_next_afterstate(learning_player, print_results=True)
-        reward = CountPoints().execute(game.state.predictions, game.state.number_of_turns_won)
+        reward = CountPoints().execute(
+            game.state.predictions, game.state.number_of_turns_won
+        )
 
 profiler.stop()
 profiler.open_in_browser()
