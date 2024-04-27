@@ -5,13 +5,7 @@ from wizard.base_game.player import Player
 
 
 class CountPoints:
-    @staticmethod
-    def count_points_single_prediction(prediction: int, number_of_turns_won: int):
-        if prediction == number_of_turns_won:
-            return int((DYNAMIC_REWARD * prediction + BASE_REWARD))
-        return int(DYNAMIC_LOSS * abs(prediction - number_of_turns_won))
-
-    def count_points_round(
+    def execute(
         self,
         predictions: Dict[Player, int],
         number_of_turns_won: Dict[Union[int, Player], int],
@@ -23,3 +17,9 @@ class CountPoints:
                 number_of_turns_won=number_of_turns_won[player],
             )
         return score
+
+    @staticmethod
+    def count_points_single_prediction(prediction: int, number_of_turns_won: int):
+        if prediction == number_of_turns_won:
+            return int((DYNAMIC_REWARD * prediction + BASE_REWARD))
+        return int(DYNAMIC_LOSS * abs(prediction - number_of_turns_won))

@@ -43,12 +43,11 @@ class Player(abc.ABC):
         return self.cards
 
     def playable_cards(self) -> List[Card]:
-        if self.game.state.current_turn_history:
-            first_color_played = self.game.state.current_turn_history[-1].starting_color
-            if first_color_played is not None:
-                return self._filter_playable_cards_relatively_to_first_color_played(
-                    first_color_played
-                )
+        first_color_played = self.game.state.round_specifics.starting_color
+        if first_color_played is not None:
+            return self._filter_playable_cards_relatively_to_first_color_played(
+                first_color_played
+            )
         return self.cards
 
     def _possible_predictions(self) -> List[int]:

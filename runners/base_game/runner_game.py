@@ -14,6 +14,6 @@ game_displayer.display_hand_each_player()
 game.request_predictions()
 game_displayer.display_prediction_each_player()
 
-game.play_round(print_results=True)
+game.play_game(print_results=True)
 
 game_displayer.display_result_each_player()

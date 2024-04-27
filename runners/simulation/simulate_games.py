@@ -52,10 +52,10 @@ for _ in range(NUMBER_TRIALS):
     game = Game()
     game.initialize_game(deck=Deck(), players=players, first_player=players[0])
     game.request_predictions()
-    game.play_round()
+    game.play_game()
 
     games_scoring.append(
-        CountPoints().count_points_round(
+        CountPoints().execute(
             predictions=game.state.predictions,
             number_of_turns_won=game.state.number_of_turns_won,
         )

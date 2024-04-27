@@ -10,6 +10,9 @@ from wizard.base_game.played_card import PlayedCard
 from wizard.base_game.player import Player
 
 
+Terminal = bool
+
+
 @dataclass
 class GameDefinition:
     initial_player_starting: Player
@@ -19,13 +22,20 @@ class GameDefinition:
 
 
 @dataclass
+class GameRoundSpecifics:
+    turn_history: List[PlayedCard]
+    player_starting: Player
+    number_cards_played: int
+    starting_color: Optional[str] = None
+
+
+@dataclass
 class GameState:
     predictions: Dict[Player, Optional[int]]
     number_of_turns_won: Dict[Player, int]
-    player_starting: Player
-    current_turn_history: List[PlayedCard]
     previous_turns_history: List[List[PlayedCard]]
-    starting_color: Optional[str] = None
+    is_start_of_game: bool
+    round_specifics: GameRoundSpecifics
 
 
 class Game:
@@ -79,53 +89,92 @@ class Game:
         self.state = GameState(
             predictions=dict.fromkeys(self.definition.players, None),
             number_of_turns_won=dict.fromkeys(self.definition.players, 0),
-            player_starting=self.definition.initial_player_starting,
-            current_turn_history=[],
             previous_turns_history=[],
+            is_start_of_game=True,
+            round_specifics=GameRoundSpecifics(
+                turn_history=[],
+                player_starting=self.definition.initial_player_starting,
+                number_cards_played=0,
+                starting_color=None,
+            ),
         )
 
     def request_predictions(self) -> None:
         for player in self.ordered_list_players:
             self.state.predictions[player] = player.make_prediction()
 
-    def play_round(self, print_results: bool = False) -> None:
-        for _ in range(NUMBER_CARDS_PER_PLAYER):
-            self._play_turn(print_results=print_results)
+    def play_game(self, print_results: bool = False) -> None:
+        terminal = self._play_next_card(print_results=print_results)
+        while not terminal:
+            terminal = self._play_next_card(print_results=print_results)
 
-    def _play_turn(self, print_results: bool) -> None:
-        for position, player in enumerate(self.ordered_list_players):
-            card = player.play_card()
-            if card.color and not self.state.starting_color:
-                self.state.starting_color = card.color
-            self.state.current_turn_history += [
-                PlayedCard(
-                    card=card,
-                    starting_color=self.state.starting_color,
-                    card_position=position,
-                    player=player,
-                )
-            ]
+    def get_to_first_state_for_learning_player(self, learning_player: Player):
+        while self.next_player_playing != learning_player:
+            self._play_next_card(print_results=False)
 
-        winner = max(self.state.current_turn_history)
-        self.state.number_of_turns_won[winner.player] += 1
-        self.state.player_starting = winner.player
-        self.state.previous_turns_history += [self.state.current_turn_history]
-        self.state.current_turn_history = []
-        self.state.starting_color = None
-        if print_results:
-            GameDisplayer(self).display_result_turn(
-                played_cards=self.state.current_turn_history, winner=winner
+    def get_to_next_afterstate(
+        self, learning_player: Player, print_results: bool = False
+    ) -> Terminal:
+        assert (
+            self.next_player_playing == learning_player
+        ), "Learning player should have been playing"
+        no_card_was_played = True
+        while self.next_player_playing != learning_player or no_card_was_played:
+            terminal = self._play_next_card(print_results)
+            no_card_was_played = False
+            if terminal:
+                return True
+        return False
+
+    def _play_next_card(self, print_results: bool) -> Terminal:
+        player = self.next_player_playing
+        card = player.play_card()
+        if card.color and not self.state.round_specifics.starting_color:
+            self.state.round_specifics.starting_color = card.color
+        self.state.round_specifics.turn_history += [
+            PlayedCard(
+                card=card,
+                starting_color=self.state.round_specifics.starting_color,
+                card_position=self.state.round_specifics.number_cards_played,
+                player=player,
             )
+        ]
+        self.state.round_specifics.number_cards_played += 1
+
+        if len(self.state.round_specifics.turn_history) == len(self.definition.players):
+            self._complete_round(print_results)
+            if len(self.state.previous_turns_history) == NUMBER_CARDS_PER_PLAYER:
+                return True
+        return False
+
+    def _complete_round(self, print_results: bool):
+        winner = max(self.state.round_specifics.turn_history)
+
+        self.state.number_of_turns_won[winner.player] += 1
+        self.state.previous_turns_history += [self.state.round_specifics.turn_history]
+        if print_results:
+            GameDisplayer(self).display_result_round(
+                played_cards=self.state.round_specifics.turn_history, winner=winner
+            )
+
+        self.state.round_specifics.player_starting = winner.player
+        self.state.round_specifics.turn_history = []
+        self.state.round_specifics.starting_color = None
+        self.state.round_specifics.number_cards_played = 0
 
     @property
     def ordered_list_players(self) -> List[Player]:
         index_starting_player = self.definition.players.index(
-            self.state.player_starting
+            self.state.round_specifics.player_starting
         )
         return (
             self.definition.players[index_starting_player:]
             + self.definition.players[:index_starting_player]
         )
+
+    @property
+    def next_player_playing(self):
+        return self.ordered_list_players[self.state.round_specifics.number_cards_played]
 
     def reset_game(self) -> None:
         self._initialize_game_state()
@@ -154,7 +203,7 @@ class GameDisplayer:
 
     def display_result_each_player(self):
         print("--- RESULT EACH PLAYER ---")
-        points_each_player = CountPoints().count_points_round(
+        points_each_player = CountPoints().execute(
             predictions=self.game.state.predictions,
             number_of_turns_won=self.game.state.number_of_turns_won,
         )
@@ -165,7 +214,7 @@ class GameDisplayer:
                 f" got {points_each_player[player.identifier]} points"
             )
 
-    def display_result_turn(self, played_cards: List[PlayedCard], winner: PlayedCard):
+    def display_result_round(self, played_cards: List[PlayedCard], winner: PlayedCard):
         print(f"TURN {len(self.game.state.previous_turns_history)}", end=" ")
         played_cards.sort(key=lambda played_card: played_card.player.identifier)
         for played_card in played_cards:

@@ -135,12 +135,12 @@ class ComputeFeatures:
 
     def _compute_outcome_of_playing_card_feature(self, card: Card):
         kwargs = {}
-        current_played_cards = self._game.state.current_turn_history
+        current_played_cards = self._game.state.round_specifics.turn_history
         hypothetically_played_card = PlayedCard(
             card=card,
             card_position=len(current_played_cards),
             player=self._player,
-            starting_color=self._game.state.starting_color,
+            starting_color=self._game.state.round_specifics.starting_color,
         )
         if (
             max([hypothetically_played_card] + current_played_cards)

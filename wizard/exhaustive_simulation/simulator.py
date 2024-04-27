@@ -106,7 +106,7 @@ class SimulatorWithOneLearningPlayer(Simulator):
         for i, player in enumerate(self._players):
             player.provide_strategy(cards_ordered_by_priority=playing_order[i])
         game.reset_game()
-        game.play_round()
+        game.play_game()
         result_logger.append(
             SimulationResult(
                 trial_number=trial_number,
