@@ -4,11 +4,13 @@ from pyinstrument import Profiler
 from config.common import NUMBER_CARDS_PER_PLAYER, NUMBER_OF_PLAYERS
 from wizard.base_game.deck import Deck
 from wizard.base_game.player import DefinedStrategyPlayer
-from wizard.simulation.simulation_result import SimulationResultMetadata
-from wizard.simulation.simulation_result_storage import (
-    SimulationResultStorage, SimulationType)
-from wizard.simulation.simulator import SimulatorWithOneLearningPlayer
-from wizard.simulation.survey_simulation_result import SurveySimulationResult
+from wizard.exhaustive_simulation.simulation_result import SimulationResultMetadata
+from wizard.exhaustive_simulation.simulation_result_storage import (
+    SimulationResultStorage,
+    SimulationResultType,
+)
+from wizard.exhaustive_simulation.simulator import SimulatorWithOneLearningPlayer
+from wizard.exhaustive_simulation.survey_simulation_result import SurveySimulationResult
 
 # profiler = Profiler()
 # profiler.start()
@@ -36,7 +38,7 @@ simulation_result = pd.DataFrame(simulator.simulate())
 
 SimulationResultStorage(
     simulation_result_metadata=simulation_result_metadata,
-    simulation_type=SimulationType.ALL_OUTCOME,
+    simulation_type=SimulationResultType.ALL_OUTCOME,
 ).save_simulation_result(simulation_result)
 
 
@@ -49,7 +51,7 @@ surveyed_simulation_result = survey.evaluate_optimal_strategy()
 
 SimulationResultStorage(
     simulation_result_metadata=simulation_result_metadata,
-    simulation_type=SimulationType.SURVEY,
+    simulation_type=SimulationResultType.SURVEY,
 ).save_simulation_result(surveyed_simulation_result)
 
 # profiler.stop()

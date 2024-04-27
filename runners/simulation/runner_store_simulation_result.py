@@ -1,8 +1,10 @@
 import pandas as pd
 
-from wizard.simulation.simulation_result import SimulationResultMetadata
-from wizard.simulation.simulation_result_storage import (
-    SimulationResultStorage, SimulationType)
+from wizard.exhaustive_simulation.simulation_result import SimulationResultMetadata
+from wizard.exhaustive_simulation.simulation_result_storage import (
+    SimulationResultStorage,
+    SimulationResultType,
+)
 
 simulation_result_metadata = SimulationResultMetadata(
     simulation_id=-2449507750738433667,
@@ -14,10 +16,10 @@ simulation_result_metadata = SimulationResultMetadata(
 
 SimulationResultStorage(
     simulation_result_metadata=simulation_result_metadata,
-    simulation_type=SimulationType.ALL_OUTCOME,
+    simulation_type=SimulationResultType.ALL_OUTCOME,
 ).save_simulation_result(pd.DataFrame())
 
 simulation_result = SimulationResultStorage(
     simulation_result_metadata=simulation_result_metadata,
-    simulation_type=SimulationType.ALL_OUTCOME,
+    simulation_type=SimulationResultType.ALL_OUTCOME,
 ).read_simulation_result()

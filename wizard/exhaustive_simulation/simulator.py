@@ -12,8 +12,8 @@ from wizard.base_game.game import Game
 from wizard.base_game.list_cards import ListCards
 from wizard.base_game.player import DefinedStrategyPlayer
 from wizard.common import iterator_to_list_of_list
-from wizard.simulation.hand_combinations import HandCombinationsTwoCards
-from wizard.simulation.simulation_result import SimulationResult
+from wizard.exhaustive_simulation.hand_combinations import HandCombinationsTwoCards
+from wizard.exhaustive_simulation.simulation_result import SimulationResult
 
 IMPLEMENTED_COMBINATIONS = {2: HandCombinationsTwoCards}
 
@@ -75,7 +75,7 @@ class SimulatorWithOneLearningPlayer(Simulator):
                     trial_number=trial_number,
                     result_logger=result_logger,
                 )
-                game.game_definition.deck.reset_deck()
+                game.definition.deck.reset_deck()
         return result_logger
 
     def _simulate_all_outcome_one_round(
@@ -117,7 +117,7 @@ class SimulatorWithOneLearningPlayer(Simulator):
                     cards=playing_order[self._players.index(self._learning_player)]
                 ).to_single_representation(sort=False),
                 number_of_turns_won={
-                    player.identifier: game.game_dynamics.number_of_turns_won[player]
+                    player.identifier: game.state.number_of_turns_won[player]
                     for player in self._players
                 },
             )

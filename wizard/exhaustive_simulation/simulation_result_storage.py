@@ -4,10 +4,10 @@ from pathlib import Path
 import pandas as pd
 
 from project_path import ABS_PATH_PROJECT
-from wizard.simulation.simulation_result import SimulationResultMetadata
+from wizard.exhaustive_simulation.simulation_result import SimulationResultMetadata
 
 
-class SimulationType(Enum):
+class SimulationResultType(Enum):
     ALL_OUTCOME = "all_outcome"
     SURVEY = "survey"
 
@@ -16,7 +16,7 @@ class SimulationResultStorage:
     def __init__(
         self,
         simulation_result_metadata: SimulationResultMetadata,
-        simulation_type: SimulationType,
+        simulation_type: SimulationResultType,
     ):
         self.simulation_result_metadata = simulation_result_metadata
         self.simulation_type = simulation_type

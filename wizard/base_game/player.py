@@ -8,7 +8,7 @@ import pandas as pd
 from config.common import NUMBER_CARDS_PER_PLAYER
 from wizard.base_game.card import Card
 from wizard.base_game.list_cards import ListCards
-from wizard.simulation.hand_combinations import HandCombinationsTwoCards
+from wizard.exhaustive_simulation.hand_combinations import HandCombinationsTwoCards
 
 
 class Player(abc.ABC):
@@ -42,11 +42,9 @@ class Player(abc.ABC):
             return cards_from_required_color + special_cards
         return self.cards
 
-    def _playable_cards(self) -> List[Card]:
-        if self.game.game_dynamics.current_turn_history:
-            first_color_played = self.game.game_dynamics.current_turn_history[
-                -1
-            ].starting_color
+    def playable_cards(self) -> List[Card]:
+        if self.game.state.current_turn_history:
+            first_color_played = self.game.state.current_turn_history[-1].starting_color
             if first_color_played is not None:
                 return self._filter_playable_cards_relatively_to_first_color_played(
                     first_color_played
@@ -56,7 +54,7 @@ class Player(abc.ABC):
     def _possible_predictions(self) -> List[int]:
         if self.game.ordered_list_players[-1] == self:
             sum_of_already_announced_predictions = sum(
-                self.game.game_dynamics.predictions[player]
+                self.game.state.predictions[player]
                 for player in self.game.ordered_list_players[:-1]
             )
             if (
@@ -82,6 +80,7 @@ class Player(abc.ABC):
         The card needs to be returned and removed from the hand of the Player.
         :return: Card that is played
         """
+        pass
 
 
 class RandomPlayer(Player):
@@ -89,7 +88,7 @@ class RandomPlayer(Player):
         return np.random.choice(self._possible_predictions())
 
     def play_card(self) -> Card:
-        card_to_play = np.random.choice(self._playable_cards())  # type: ignore
+        card_to_play = np.random.choice(self.playable_cards())  # type: ignore
         self.cards.remove(card_to_play)
         return card_to_play
 
@@ -111,7 +110,7 @@ class DefinedStrategyPlayer(Player):
     def play_card(self) -> Card:  # type: ignore
         assert self.cards_ordered_by_priority, "No priority given"
         for card in self.cards_ordered_by_priority:
-            if card in self._playable_cards():
+            if card in self.playable_cards():
                 self.cards.remove(card)
                 return card
 
@@ -135,7 +134,7 @@ class StatisticalPlayer(Player):
 
     def play_card(self):
         for card in self.cards_ordered_by_priority:
-            if card in self._playable_cards():
+            if card in self.playable_cards():
                 self.cards.remove(card)
                 return card
 

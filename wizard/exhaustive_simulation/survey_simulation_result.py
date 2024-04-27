@@ -71,9 +71,9 @@ class SurveySimulationResult:
 
     @staticmethod
     def sort_per_combination(simulation_results: pd.DataFrame):
-        simulation_results[
-            "tested_combination_in_card_format"
-        ] = simulation_results["tested_combination"].apply(
+        simulation_results["tested_combination_in_card_format"] = simulation_results[
+            "tested_combination"
+        ].apply(
             lambda representation: ListCards.from_single_representation(
                 representation=representation
             ).cards

@@ -2,8 +2,14 @@ from typing import List
 
 import numpy as np
 
-from config.common import (BASE_COLORS, JESTER_NAME, MAGICIAN_NAME,
-                           NUMBER_OF_JESTERS, NUMBER_OF_MAGICIANS, SUITS)
+from config.common import (
+    BASE_COLORS,
+    JESTER_NAME,
+    MAGICIAN_NAME,
+    NUMBER_OF_JESTERS,
+    NUMBER_OF_MAGICIANS,
+    SUITS,
+)
 from wizard.base_game.card import Card
 
 
@@ -60,23 +66,7 @@ class Deck:
                 if card == card_to_suppress:
                     self.cards.remove(card)
                     break
-        self.initial_cards = self.cards  # Useful for simulation purpose
+        self.initial_cards = self.cards  # Useful for exhaustive_simulation purpose
 
     def reset_deck(self):
         self.cards = self.initial_cards.copy()
-
-    @property
-    def number_cards_per_color(self):
-        return len(SUITS)
-
-    @property
-    def number_colors(self):
-        return len(BASE_COLORS)
-
-    @property
-    def number_jesters(self):
-        return NUMBER_OF_JESTERS
-
-    @property
-    def number_wizards(self):
-        return NUMBER_OF_MAGICIANS
