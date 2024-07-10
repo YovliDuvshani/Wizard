@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "wizard"
+version = "0.1.0"
+description = ""
+authors = ["duvshani"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pandas = "*"
+numpy = "*"
+pyinstrument = "*"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
