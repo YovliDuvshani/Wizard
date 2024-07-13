@@ -1,6 +1,7 @@
+from functools import cached_property
 from typing import Optional
 
-from config.common import BASE_COLORS, JESTER_NAME, MAGICIAN_NAME
+from config.common import BASE_COLORS, JESTER_NAME, MAGICIAN_NAME, SUITS
 
 
 class Card:
@@ -64,6 +65,14 @@ class Card:
         if self.color is not None:
             return f"{self.number} {self.color}"
         return str(self.special_card)
+
+    @cached_property
+    def id(self) -> int:
+        if self.special_card == MAGICIAN_NAME:
+            return 0
+        elif self.special_card == JESTER_NAME:
+            return 1
+        return BASE_COLORS.index(self.color) * SUITS.index(self.number) + 2
 
 
 class InvalidCard(Exception):
