@@ -1,6 +1,7 @@
 from config.common import NUMBER_OF_PLAYERS
 from wizard.base_game.player import RandomPlayer
-from wizard.rl_pipeline.env.single_player_learning_env import SinglePlayerLearningEnv
+from wizard.rl_pipeline.env.single_player_learning_env import \
+    SinglePlayerLearningEnv
 
 
 class TestSinglePlayerLearningEnv:

@@ -2,7 +2,8 @@
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 
-from config.common import NUMBER_CARDS_PER_PLAYER, NUMBER_OF_PLAYERS, TRUMP_COLOR
+from config.common import (NUMBER_CARDS_PER_PLAYER, NUMBER_OF_PLAYERS,
+                           TRUMP_COLOR)
 from wizard.base_game.card import Card
 from wizard.base_game.count_points import CountPoints
 from wizard.base_game.deck import Deck

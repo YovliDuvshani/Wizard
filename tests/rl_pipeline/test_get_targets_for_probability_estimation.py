@@ -2,9 +2,8 @@ from config.common import BASE_COLORS, MAGICIAN_NAME
 from wizard.base_game.card import Card
 from wizard.base_game.played_card import PlayedCard
 from wizard.base_game.player import RandomPlayer
-from wizard.rl_pipeline.get_targets_for_probability_estimation import (
-    GetTargetsForProbabilityEstimation,
-)
+from wizard.rl_pipeline.get_targets_for_probability_estimation import \
+    GetTargetsForProbabilityEstimation
 
 
 class TestGetTargetsForProbabilityEstimation:

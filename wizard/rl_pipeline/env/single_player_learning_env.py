@@ -9,11 +9,11 @@ from wizard.base_game.count_points import POINT_RANGE, CountPoints
 from wizard.base_game.deck import Deck
 from wizard.base_game.game import Game, Terminal
 from wizard.base_game.player import Player
-from wizard.rl_pipeline.features.compute_generic_features import ComputeGenericFeatures
+from wizard.rl_pipeline.features.compute_generic_features import \
+    ComputeGenericFeatures
 from wizard.rl_pipeline.features.observation_space import OBSERVATION_SPACE
-from wizard.rl_pipeline.features.select_features_for_learning import (
-    SelectLearningFeatures,
-)
+from wizard.rl_pipeline.features.select_learning_features import \
+    SelectLearningFeatures
 
 
 class SinglePlayerLearningEnv(gymnasium.Env):
@@ -34,7 +34,7 @@ class SinglePlayerLearningEnv(gymnasium.Env):
         self, action: ActType
     ) -> tuple[ObsType, float, bool, bool, dict[str, Any]]:
         terminal = self._game.get_to_next_afterstate_for_given_player(
-            self._learning_player, print_results=True
+            self._learning_player
         )
         reward = self._get_reward(terminal)
         return (

@@ -1,11 +1,9 @@
-from gymnasium.spaces import Tuple, Sequence, Discrete
+from gymnasium.spaces import Discrete, Sequence, Tuple
 
 from config.common import NUMBER_OF_UNIQUE_CARDS
 from wizard.rl_pipeline.features.data_cls import (
-    GenericCardSpecificFeatures,
-    GenericCardsContextFeatures,
-    GenericObjectiveContextFeatures,
-)
+    GenericCardsContextFeatures, GenericCardSpecificFeatures,
+    GenericObjectiveContextFeatures)
 from wizard.rl_pipeline.features.used_features import USED_FEATURES
 
 OBSERVATION_SPACE = Tuple(

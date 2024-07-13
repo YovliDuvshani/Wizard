@@ -2,14 +2,8 @@ from typing import List
 
 import numpy as np
 
-from config.common import (
-    BASE_COLORS,
-    JESTER_NAME,
-    MAGICIAN_NAME,
-    NUMBER_OF_JESTERS,
-    NUMBER_OF_MAGICIANS,
-    SUITS,
-)
+from config.common import (BASE_COLORS, JESTER_NAME, MAGICIAN_NAME,
+                           NUMBER_OF_JESTERS, NUMBER_OF_MAGICIANS, SUITS)
 from wizard.base_game.card import Card
 
 

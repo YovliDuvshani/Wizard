@@ -1,23 +1,15 @@
 from functools import cached_property
 from typing import List
 
-from config.common import (
-    TRUMP_COLOR,
-    MAGICIAN_NAME,
-    JESTER_NAME,
-    BASE_COLORS,
-    NUMBER_CARDS_PER_PLAYER,
-)
+from config.common import (BASE_COLORS, JESTER_NAME, MAGICIAN_NAME,
+                           NUMBER_CARDS_PER_PLAYER, TRUMP_COLOR)
 from wizard.base_game.card import Card
 from wizard.base_game.game import Game
 from wizard.base_game.played_card import PlayedCard
 from wizard.base_game.player import Player
 from wizard.rl_pipeline.features.data_cls import (
-    GenericCardSpecificFeatures,
-    GenericCardsContextFeatures,
-    GenericObjectiveContextFeatures,
-    GenericFeatures,
-)
+    GenericCardsContextFeatures, GenericCardSpecificFeatures, GenericFeatures,
+    GenericObjectiveContextFeatures)
 
 
 class ComputeGenericFeatures:

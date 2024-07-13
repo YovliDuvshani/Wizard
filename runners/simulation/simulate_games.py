@@ -6,14 +6,12 @@ from wizard.base_game.count_points import CountPoints
 from wizard.base_game.deck import Deck
 from wizard.base_game.game import Game
 from wizard.base_game.player import RandomPlayer, StatisticalPlayer
-from wizard.exhaustive_simulation.simulation_result import SimulationResultMetadata
+from wizard.exhaustive_simulation.simulation_result import \
+    SimulationResultMetadata
 from wizard.exhaustive_simulation.simulation_result_storage import (
-    SimulationResultStorage,
-    SimulationResultType,
-)
-from wizard.exhaustive_simulation.survey_simulation_result import (
-    transform_surveyed_df_to_have_predictions_as_index,
-)
+    SimulationResultStorage, SimulationResultType)
+from wizard.exhaustive_simulation.survey_simulation_result import \
+    transform_surveyed_df_to_have_predictions_as_index
 
 profiler = Profiler()
 profiler.start()

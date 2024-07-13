@@ -1,11 +1,12 @@
+from pyinstrument import Profiler
+
 from config.common import NUMBER_OF_PLAYERS
 from wizard.base_game.count_points import CountPoints
 from wizard.base_game.deck import Deck
 from wizard.base_game.game import Game, GameDisplayer
 from wizard.base_game.player import RandomPlayer
-from wizard.rl_pipeline.features.compute_generic_features import ComputeGenericFeatures
-
-from pyinstrument import Profiler
+from wizard.rl_pipeline.features.compute_generic_features import \
+    ComputeGenericFeatures
 
 profiler = Profiler()
 profiler.start()

@@ -8,7 +8,8 @@ import pandas as pd
 from config.common import NUMBER_CARDS_PER_PLAYER
 from wizard.base_game.card import Card
 from wizard.base_game.list_cards import ListCards
-from wizard.exhaustive_simulation.hand_combinations import HandCombinationsTwoCards
+from wizard.exhaustive_simulation.hand_combinations import \
+    HandCombinationsTwoCards
 
 
 class Player(abc.ABC):
