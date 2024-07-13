@@ -38,7 +38,11 @@ class GetTargetsForProbabilityEstimation:
         return (
             1
             if card
-            in [w_played_card.card for w_played_card in self._winner_per_round if w_played_card.player == self._player]
+            in [
+                w_played_card.card
+                for w_played_card in self._winner_per_round
+                if w_played_card.player == self._player
+            ]
             else 0
         )
 
@@ -54,7 +58,11 @@ class GetTargetsForProbabilityEstimation:
             return (
                 1
                 if card
-                in [w_played_card.card for w_played_card in self._winner_per_round if w_played_card.player == self._player]
+                in [
+                    w_played_card.card
+                    for w_played_card in self._winner_per_round
+                    if w_played_card.player == self._player
+                ]
                 else 0
             )
         return None

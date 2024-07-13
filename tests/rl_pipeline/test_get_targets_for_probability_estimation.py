@@ -24,7 +24,9 @@ class TestGetTargetsForProbabilityEstimation:
                 player=RandomPlayer(identifier=1),
             ),
             PlayedCard(
-                card=Card(color=BASE_COLORS[2], number=13), card_position=2, player=player
+                card=Card(color=BASE_COLORS[2], number=13),
+                card_position=2,
+                player=player,
             ),
         ]
         results = GetTargetsForProbabilityEstimation(
