@@ -9,7 +9,6 @@ from wizard.base_game.deck import Deck
 from wizard.base_game.played_card import PlayedCard
 from wizard.base_game.player import Player
 
-
 Terminal = bool
 
 
@@ -104,29 +103,30 @@ class Game:
             self.state.predictions[player] = player.make_prediction()
 
     def play_game(self, print_results: bool = False) -> None:
-        terminal = self._play_next_card(print_results=print_results)
+        terminal = self.play_next_card(print_results=print_results)
         while not terminal:
-            terminal = self._play_next_card(print_results=print_results)
+            terminal = self.play_next_card(print_results=print_results)
 
-    def get_to_first_state_for_learning_player(self, learning_player: Player):
-        while self.next_player_playing != learning_player:
-            self._play_next_card(print_results=False)
+    def get_to_first_state_for_given_player(self, player: Player):
+        while self.next_player_playing != player:
+            self.play_next_card(print_results=False)
 
-    def get_to_next_afterstate(
-        self, learning_player: Player, print_results: bool = False
+    def get_to_next_afterstate_for_given_player(
+        self, player: Player, print_results: bool = False
     ) -> Terminal:
         assert (
-            self.next_player_playing == learning_player
+            self.next_player_playing == player
         ), "Learning player should have been playing"
+
         no_card_was_played = True
-        while self.next_player_playing != learning_player or no_card_was_played:
-            terminal = self._play_next_card(print_results)
+        while self.next_player_playing != player or no_card_was_played:
+            terminal = self.play_next_card(print_results)
             no_card_was_played = False
             if terminal:
                 return True
         return False
 
-    def _play_next_card(self, print_results: bool) -> Terminal:
+    def play_next_card(self, print_results: bool) -> Terminal:
         player = self.next_player_playing
         card = player.play_card()
         if card.color and not self.state.round_specifics.starting_color:

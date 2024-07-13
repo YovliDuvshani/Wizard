@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Any
+from typing import Any, List
 
 from wizard.base_game.card import Card
 from wizard.base_game.played_card import PlayedCard

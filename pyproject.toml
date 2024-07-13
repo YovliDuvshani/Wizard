@@ -6,11 +6,16 @@ authors = ["duvshani"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
+black = "*"
+isort = "*"
 python = "^3.10"
 pandas = "*"
 numpy = "*"
 pyinstrument = "*"
-
+pytest = "*"
+torch = "*"
+gymnasium = "*"
+stable_baselines3 = "*"
 
 [build-system]
 requires = ["poetry-core"]

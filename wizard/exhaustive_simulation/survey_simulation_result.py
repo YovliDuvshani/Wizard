@@ -2,7 +2,7 @@ from typing import Optional
 
 import pandas as pd
 
-from config.common import NUMBER_CARDS_PER_PLAYER, COMBINATION_INDEXES
+from config.common import COMBINATION_INDEXES, NUMBER_CARDS_PER_PLAYER
 from wizard.base_game.count_points import CountPoints
 from wizard.base_game.list_cards import ListCards
 

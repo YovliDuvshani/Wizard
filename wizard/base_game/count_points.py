@@ -1,7 +1,17 @@
 from typing import Dict, Union
 
-from config.common import BASE_REWARD, DYNAMIC_LOSS, DYNAMIC_REWARD
+from config.common import (
+    BASE_REWARD,
+    DYNAMIC_LOSS,
+    DYNAMIC_REWARD,
+    NUMBER_CARDS_PER_PLAYER,
+)
 from wizard.base_game.player import Player
+
+POINT_RANGE = (
+    -DYNAMIC_REWARD * NUMBER_CARDS_PER_PLAYER,
+    DYNAMIC_REWARD * NUMBER_CARDS_PER_PLAYER + BASE_REWARD,
+)
 
 
 class CountPoints:

@@ -1,12 +1,12 @@
 from dataclasses import dataclass
-from typing import List, Any, Dict
+from typing import Dict, List
 
 import torch
 
 from config.common import NUMBER_OF_UNIQUE_CARDS
 
 ANN_BASE_HIDDEN_LAYERS_SIZE = {
-    "CARD_REPRESENTATION_ANN": [5, 5],
+    "CARD_REPRESENTATION_ANN": [10, 10],
     "HAND_REPRESENTATION_ANN": [5, 5],
     "STRATEGY_REPRESENTATION_ANN": [5, 5],
 }
@@ -37,7 +37,7 @@ class ANNPipeline(torch.nn.Module):
 
     def forward(
         self,
-        cards_features: Dict[int, Any],
+        cards_features: Dict[int, torch.Tensor],
         hand_features: torch.Tensor,
         strategy_features: torch.Tensor,
         playable_cards_id: [List[int]],
@@ -90,7 +90,9 @@ class ANNPipeline(torch.nn.Module):
         result = torch.Tensor()
         for card_id in card_ids:
             masked_cards = torch.zeros(CARD_REPRESENTATION_SIZE * card_id - len(result))
-            result = torch.concat((result, masked_cards, cards_representations[card_id]))
+            result = torch.concat(
+                (result, masked_cards, cards_representations[card_id])
+            )
         result = torch.concat(
             (
                 result,

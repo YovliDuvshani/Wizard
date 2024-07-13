@@ -3,7 +3,7 @@ from wizard.base_game.count_points import CountPoints
 from wizard.base_game.deck import Deck
 from wizard.base_game.game import Game, GameDisplayer
 from wizard.base_game.player import RandomPlayer
-from wizard.rl_pipeline.compute_features import ComputeFeatures
+from wizard.rl_pipeline.features.compute_generic_features import ComputeGenericFeatures
 
 from pyinstrument import Profiler
 
@@ -23,12 +23,16 @@ for _ in range(1000):
     game.request_predictions()
     game_displayer.display_prediction_each_player()
 
-    game.get_to_first_state_for_learning_player(learning_player)
+    game.get_to_first_state_for_given_player(learning_player)
 
-    terminal = game.get_to_next_afterstate(learning_player, print_results=True)
+    terminal = game.get_to_next_afterstate_for_given_player(
+        learning_player, print_results=True
+    )
     while not terminal:
-        features = ComputeFeatures(game, learning_player).execute()
-        terminal = game.get_to_next_afterstate(learning_player, print_results=True)
+        features = ComputeGenericFeatures(game, learning_player).execute()
+        terminal = game.get_to_next_afterstate_for_given_player(
+            learning_player, print_results=True
+        )
         reward = CountPoints().execute(
             game.state.predictions, game.state.number_of_turns_won
         )

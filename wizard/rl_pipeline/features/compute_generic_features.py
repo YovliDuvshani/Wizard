@@ -1,81 +1,46 @@
-from dataclasses import dataclass
 from functools import cached_property
-from typing import List, Tuple, Dict, Optional
+from typing import List
 
 from config.common import (
     TRUMP_COLOR,
     MAGICIAN_NAME,
     JESTER_NAME,
-    NUMBER_CARDS_PER_PLAYER,
     BASE_COLORS,
+    NUMBER_CARDS_PER_PLAYER,
 )
 from wizard.base_game.card import Card
 from wizard.base_game.game import Game
 from wizard.base_game.played_card import PlayedCard
 from wizard.base_game.player import Player
+from wizard.rl_pipeline.features.data_cls import (
+    GenericCardSpecificFeatures,
+    GenericCardsContextFeatures,
+    GenericObjectiveContextFeatures,
+    GenericFeatures,
+)
 
 
-@dataclass
-class CardSpecificFeatures:
-    IS_TRUMP: bool
-    IS_MAGICIAN: bool
-    IS_JESTER: bool
-    COLOR: str
-    NUMBER: int
-    CAN_WIN_CURRENT_SUB_ROUND: Optional[bool] = False
-    WILL_WIN_CURRENT_SUB_ROUND: Optional[bool] = False
-    NUMBER_CARDS_REMAINING_SAME_COLOR: Optional[int] = None
-    NUMBER_SUPERIOR_CARDS_REMAINING_SAME_COLOR: Optional[int] = None
-    NUMBER_INFERIOR_CARDS_REMAINING_SAME_COLOR: Optional[int] = None
-    NUMBER_CARDS_SAME_COLOR_IN_PLAYERS_HAND: Optional[int] = None
-    NUMBER_SUPERIOR_CARDS_SAME_COLOR_IN_PLAYERS_HAND: Optional[int] = None
-    NUMBER_INFERIOR_CARDS_SAME_COLOR_IN_PLAYERS_HAND: Optional[int] = None
-    NUMBER_CARDS_REMAINING_AMONG_SPECIAL_TRUMP_AND_SAME_COLOR: Optional[int] = None
-    NUMBER_SUPERIOR_CARDS_REMAINING_AMONG_SPECIAL_TRUMP_AND_SAME_COLOR: Optional[
-        int
-    ] = None
-    NUMBER_INFERIOR_CARDS_REMAINING_AMONG_SPECIAL_TRUMP_AND_SAME_COLOR: Optional[
-        int
-    ] = None
-
-
-@dataclass
-class CardsContextFeatures:
-    NUMBER_CARDS_REMAINING: int
-    NUMBER_CARDS_REMAINING_IN_PLAYER_HAND: int
-    NUMBER_CARDS_REMAINING_IN_OTHER_PLAYERS_HANDS: int
-    NUMBER_CARDS_REMAINING_PER_COLOR: Dict[str, int]
-    NUMBER_CARDS_REMAINING_IN_HAND_PER_COLOR: Dict[str, int]
-
-
-@dataclass
-class ObjectiveContextFeatures:
-    NUMBER_ROUNDS_TO_WIN: int
-    NUMBER_ROUNDS_ALREADY_WON: int
-    TOTAL_NUMBER_OF_ROUNDS: int
-
-
-class ComputeFeatures:
+class ComputeGenericFeatures:
     def __init__(self, game: Game, player: Player):
         self._game = game
         self._player = player
 
     def execute(
         self,
-    ) -> Tuple[
-        Dict[str, List[CardSpecificFeatures]],
-        CardsContextFeatures,
-        ObjectiveContextFeatures,
-    ]:
+    ) -> GenericFeatures:
         card_specific_features = {
             card.representation: self._compute_card_specific_features(card)
             for card in self._player.playable_cards()
-        }
+        }  # Duplicates are removed implicitly
         card_context_features = self._compute_card_context_features()
         objective_context_features = self._compute_objective_context_features()
-        return card_specific_features, card_context_features, objective_context_features
+        return GenericFeatures(
+            card_specific_features, card_context_features, objective_context_features
+        )
 
-    def _compute_card_specific_features(self, card: Card) -> CardSpecificFeatures:
+    def _compute_card_specific_features(
+        self, card: Card
+    ) -> GenericCardSpecificFeatures:
         kwargs = {}
         kwargs.update(self._compute_base_card_feature(card))
         kwargs.update(self._compute_outcome_of_playing_card_feature(card))
@@ -83,7 +48,7 @@ class ComputeFeatures:
         if card.special_card is None:
             kwargs.update(self._compute_advanced_card_feature(card))
 
-        return CardSpecificFeatures(**kwargs)
+        return GenericCardSpecificFeatures(**kwargs)
 
     @staticmethod
     def _compute_base_card_feature(card: Card):
@@ -91,8 +56,8 @@ class ComputeFeatures:
             "IS_TRUMP": card.color == TRUMP_COLOR,
             "IS_MAGICIAN": card.special_card == MAGICIAN_NAME,
             "IS_JESTER": card.special_card == JESTER_NAME,
-            "COLOR": card.color,
-            "NUMBER": card.number,
+            "COLOR": BASE_COLORS.index(card.color) + 1 if card.color else 0,
+            "NUMBER": card.number if card.number else 0,
         }
 
     def _compute_advanced_card_feature(self, card: Card):
@@ -154,8 +119,8 @@ class ComputeFeatures:
                 kwargs["WILL_WIN_CURRENT_SUB_ROUND"] = True
         return kwargs
 
-    def _compute_card_context_features(self) -> CardsContextFeatures:
-        return CardsContextFeatures(
+    def _compute_card_context_features(self) -> GenericCardsContextFeatures:
+        return GenericCardsContextFeatures(
             NUMBER_CARDS_REMAINING=len(self.remaining_cards),
             NUMBER_CARDS_REMAINING_IN_OTHER_PLAYERS_HANDS=len(
                 self.remaining_cards_in_other_players_hand
@@ -173,8 +138,8 @@ class ComputeFeatures:
             },
         )
 
-    def _compute_objective_context_features(self) -> ObjectiveContextFeatures:
-        return ObjectiveContextFeatures(
+    def _compute_objective_context_features(self) -> GenericObjectiveContextFeatures:
+        return GenericObjectiveContextFeatures(
             NUMBER_ROUNDS_TO_WIN=self._game.state.predictions[self._player],
             NUMBER_ROUNDS_ALREADY_WON=self._game.state.number_of_turns_won[
                 self._player
