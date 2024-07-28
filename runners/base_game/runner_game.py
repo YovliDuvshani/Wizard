@@ -1,7 +1,7 @@
 from config.common import NUMBER_OF_PLAYERS
 from wizard.base_game.deck import Deck
 from wizard.base_game.game import Game, GameDisplayer
-from wizard.base_game.player import RandomPlayer
+from wizard.base_game.player.player import RandomPlayer
 
 players = [RandomPlayer(identifier=i) for i in range(NUMBER_OF_PLAYERS)]
 deck = Deck()

@@ -1,9 +1,10 @@
 import pandas as pd
 
-from wizard.exhaustive_simulation.simulation_result import \
-    SimulationResultMetadata
+from wizard.exhaustive_simulation.simulation_result import SimulationResultMetadata
 from wizard.exhaustive_simulation.simulation_result_storage import (
-    SimulationResultStorage, SimulationResultType)
+    SimulationResultStorage,
+    SimulationResultType,
+)
 
 simulation_result_metadata = SimulationResultMetadata(
     simulation_id=-2449507750738433667,

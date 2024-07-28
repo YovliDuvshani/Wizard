@@ -2,13 +2,12 @@
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 
-from config.common import (NUMBER_CARDS_PER_PLAYER, NUMBER_OF_PLAYERS,
-                           TRUMP_COLOR)
+from config.common import NUMBER_CARDS_PER_PLAYER, NUMBER_OF_PLAYERS, TRUMP_COLOR
 from wizard.base_game.card import Card
 from wizard.base_game.count_points import CountPoints
 from wizard.base_game.deck import Deck
 from wizard.base_game.played_card import PlayedCard
-from wizard.base_game.player import Player
+from wizard.base_game.player.player import Player
 
 Terminal = bool
 
@@ -44,9 +43,7 @@ class Game:
         self.definition: Optional[GameDefinition] = None
         self.state: Optional[GameState] = None
 
-    def initialize_game(
-        self, deck: Deck, players: List[Player], first_player: Player
-    ) -> None:
+    def initialize_game(self, deck: Deck, players: List[Player], first_player: Player) -> None:
         self._assign_players(players)
         trump_card_removed = self._remove_one_trump_card(deck)
         self._distribute_cards(players=players, deck=deck)
@@ -74,14 +71,10 @@ class Game:
     def _distribute_cards(players: List[Player], deck: Deck) -> None:
         assert players is not None, "No players"
         assert deck is not None, "Deck of cards is missing"
-        assert NUMBER_CARDS_PER_PLAYER * NUMBER_OF_PLAYERS < len(
-            deck.cards
-        ), "Not enough cards"
+        assert NUMBER_CARDS_PER_PLAYER * NUMBER_OF_PLAYERS < len(deck.cards), "Not enough cards"
 
         for player in players:
-            player_has_received_cards = player.receive_cards(
-                deck.cards[0:NUMBER_CARDS_PER_PLAYER]
-            )
+            player_has_received_cards = player.receive_cards(deck.cards[0:NUMBER_CARDS_PER_PLAYER])
             if player_has_received_cards:
                 deck.cards = deck.cards[NUMBER_CARDS_PER_PLAYER:]
 
@@ -112,12 +105,8 @@ class Game:
         while self.next_player_playing != player:
             self.play_next_card(print_results=False)
 
-    def get_to_next_afterstate_for_given_player(
-        self, player: Player, print_results: bool = False
-    ) -> Terminal:
-        assert (
-            self.next_player_playing == player
-        ), "Learning player should have been playing"
+    def get_to_next_afterstate_for_given_player(self, player: Player, print_results: bool = False) -> Terminal:
+        assert self.next_player_playing == player, "Learning player should have been playing"
 
         no_card_was_played = True
         while self.next_player_playing != player or no_card_was_played:
@@ -166,13 +155,8 @@ class Game:
 
     @property
     def ordered_list_players(self) -> List[Player]:
-        index_starting_player = self.definition.players.index(
-            self.state.round_specifics.player_starting
-        )
-        return (
-            self.definition.players[index_starting_player:]
-            + self.definition.players[:index_starting_player]
-        )
+        index_starting_player = self.definition.players.index(self.state.round_specifics.player_starting)
+        return self.definition.players[index_starting_player:] + self.definition.players[:index_starting_player]
 
     @property
     def next_player_playing(self):
@@ -199,9 +183,7 @@ class GameDisplayer:
     def display_prediction_each_player(self):
         print("--- PREDICTION EACH PLAYER ---")
         for player in self.game.definition.players:
-            print(
-                f"Player {player.identifier} declared {self.game.state.predictions[player]}"
-            )
+            print(f"Player {player.identifier} declared {self.game.state.predictions[player]}")
 
     def display_result_each_player(self):
         print("--- RESULT EACH PLAYER ---")
@@ -222,8 +204,7 @@ class GameDisplayer:
         for played_card in played_cards:
             outcome = "WINNER" if winner == played_card else "LOSER"
             print(
-                f"--- {outcome}: player {played_card.player.identifier}"
-                f" with {played_card.card.representation}",
+                f"--- {outcome}: player {played_card.player.identifier}" f" with {played_card.card.representation}",
                 end=" ",
             )
         print()

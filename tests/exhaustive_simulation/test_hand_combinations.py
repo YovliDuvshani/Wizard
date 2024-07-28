@@ -5,8 +5,7 @@ import pytest
 from config.common import BASE_COLORS, JESTER_NAME, TRUMP_COLOR
 from wizard.base_game.card import Card
 from wizard.base_game.deck import Deck
-from wizard.exhaustive_simulation.hand_combinations import \
-    HandCombinationsTwoCards
+from wizard.exhaustive_simulation.hand_combinations import HandCombinationsTwoCards
 
 
 class TestHandCombinationsTwoCards:
@@ -83,7 +82,4 @@ class TestHandCombinationsTwoCards:
     def test_list_cards_to_hand_combination_return_is_correct(
         self, list_cards: List[Card], expected_combination: List[Card]
     ):
-        assert (
-            HandCombinationsTwoCards(Deck()).list_cards_to_hand_combination(list_cards)
-            == expected_combination
-        )
+        assert HandCombinationsTwoCards(Deck()).list_cards_to_hand_combination(list_cards) == expected_combination

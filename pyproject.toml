@@ -15,9 +15,18 @@ pyinstrument = "*"
 pytest = "*"
 torch = "*"
 gymnasium = "*"
-stable_baselines3 = "*"
+plotly = "*"
+# stable_baselines3 = "*"
+# ray = "*"
+# rlcard = "*"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 120
+
+[tool.isort]
+profile = "black"
 

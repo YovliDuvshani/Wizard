@@ -3,9 +3,13 @@ from dataclasses import dataclass, fields
 import numpy as np
 
 from wizard.rl_pipeline.features.data_cls import (
-    FeatureGroups, FeatureGroupTypes, GenericCardsContextFeatures,
-    GenericCardSpecificFeatures, GenericFeatures,
-    GenericObjectiveContextFeatures)
+    FeatureGroups,
+    FeatureGroupTypes,
+    GenericCardsContextFeatures,
+    GenericCardSpecificFeatures,
+    GenericFeatures,
+    GenericObjectiveContextFeatures,
+)
 from wizard.rl_pipeline.features.used_features import USED_FEATURES
 
 
@@ -35,16 +39,12 @@ class SelectLearningFeatures:
         return np.array(
             self._convert_dataclass_to_float_tuple(
                 datacls_instance=features,
-                attr_subset=[
-                    feat.name for feat in USED_FEATURES if feat.group == feature_group
-                ],
+                attr_subset=[feat.name for feat in USED_FEATURES if feat.group == feature_group],
             )
         )
 
     @staticmethod
-    def _convert_dataclass_to_float_tuple(
-        datacls_instance: dataclass, attr_subset: list[str]
-    ):
+    def _convert_dataclass_to_float_tuple(datacls_instance: dataclass, attr_subset: list[str]):
         return tuple(
             float(getattr(datacls_instance, field.name))
             for field in fields(datacls_instance)

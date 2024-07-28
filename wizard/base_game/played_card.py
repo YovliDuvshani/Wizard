@@ -2,7 +2,7 @@ from typing import Optional
 
 from config.common import JESTER_NAME, MAGICIAN_NAME, TRUMP_COLOR
 from wizard.base_game.card import Card
-from wizard.base_game.player import Player
+from wizard.base_game.player.player import Player
 
 
 class PlayedCard:
@@ -33,16 +33,10 @@ class PlayedCard:
                     return True
                 return False
             if self.card_position < other.card_position:
-                if (
-                    self.card.special_card == MAGICIAN_NAME
-                    or other.card.special_card == JESTER_NAME
-                ):
+                if self.card.special_card == MAGICIAN_NAME or other.card.special_card == JESTER_NAME:
                     return True
                 return False
-            if (
-                other.card.special_card == MAGICIAN_NAME
-                or self.card.special_card == JESTER_NAME
-            ):
+            if other.card.special_card == MAGICIAN_NAME or self.card.special_card == JESTER_NAME:
                 return False
             return True
         return NotImplemented

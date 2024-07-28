@@ -2,9 +2,11 @@ from typing import Optional
 
 import pandas as pd
 
-from config.common import COMBINATION_INDEXES, NUMBER_CARDS_PER_PLAYER
+from config.common import NUMBER_CARDS_PER_PLAYER
 from wizard.base_game.count_points import CountPoints
 from wizard.base_game.list_cards import ListCards
+
+COMBINATION_INDEXES = ["tested_combination", "combination_played_order"]
 
 
 class SurveySimulationResult:
@@ -22,9 +24,7 @@ class SurveySimulationResult:
         return self.sort_per_combination(
             pd.concat(
                 [
-                    self.evaluate_optimal_strategy_for_given_prediction(
-                        evaluated_prediction=prediction
-                    )
+                    self.evaluate_optimal_strategy_for_given_prediction(evaluated_prediction=prediction)
                     .rename(columns={"score": f"score_prediction_{prediction}"})
                     .set_index(COMBINATION_INDEXES)
                     for prediction in self.evaluated_predictions
@@ -39,23 +39,15 @@ class SurveySimulationResult:
         return list(range(self.number_of_cards_per_player + 1))
 
     def evaluate_optimal_strategy_for_given_prediction(self, evaluated_prediction: int):
-        simulation_results_with_score = (
-            self.simulation_results_with_score_for_given_prediction(
-                prediction=evaluated_prediction
-            )
+        simulation_results_with_score = self.simulation_results_with_score_for_given_prediction(
+            prediction=evaluated_prediction
         )
         worst_outcome_per_trial_per_order = (
-            simulation_results_with_score.groupby(
-                COMBINATION_INDEXES + ["trial_number"]
-            )
-            .score.min()
-            .reset_index()
+            simulation_results_with_score.groupby(COMBINATION_INDEXES + ["trial_number"]).score.min().reset_index()
         )
 
         mean_worst_outcome_per_order = (
-            worst_outcome_per_trial_per_order.groupby(COMBINATION_INDEXES)
-            .score.mean()
-            .reset_index()
+            worst_outcome_per_trial_per_order.groupby(COMBINATION_INDEXES).score.mean().reset_index()
         )
 
         return mean_worst_outcome_per_order
@@ -71,16 +63,12 @@ class SurveySimulationResult:
 
     @staticmethod
     def sort_per_combination(simulation_results: pd.DataFrame):
-        simulation_results["tested_combination_in_card_format"] = simulation_results[
-            "tested_combination"
-        ].apply(
-            lambda representation: ListCards.from_single_representation(
-                representation=representation
-            ).cards
+        simulation_results["tested_combination_in_card_format"] = simulation_results["tested_combination"].apply(
+            lambda representation: ListCards.from_single_representation(representation=representation).cards
         )
-        return simulation_results.sort_values(
-            "tested_combination_in_card_format", ascending=False
-        ).drop(columns="tested_combination_in_card_format")
+        return simulation_results.sort_values("tested_combination_in_card_format", ascending=False).drop(
+            columns="tested_combination_in_card_format"
+        )
 
 
 def transform_surveyed_df_to_have_predictions_as_index(
@@ -88,12 +76,7 @@ def transform_surveyed_df_to_have_predictions_as_index(
     number_of_cards_per_player: int = NUMBER_CARDS_PER_PLAYER,
 ):
     return pd.melt(
-        df.rename(
-            columns={
-                f"score_prediction_{i}": i
-                for i in range(number_of_cards_per_player + 1)
-            }
-        ),
+        df.rename(columns={f"score_prediction_{i}": i for i in range(number_of_cards_per_player + 1)}),
         id_vars=COMBINATION_INDEXES,
         value_vars=range(number_of_cards_per_player + 1),
         var_name="prediction",

@@ -1,3 +1,5 @@
+from unittest.mock import Mock
+
 import pytest
 
 from config.common import BASE_COLORS, JESTER_NAME, MAGICIAN_NAME, TRUMP_COLOR
@@ -14,11 +16,13 @@ class TestPlayedCard:
                     card=Card(special_card=MAGICIAN_NAME),
                     starting_color=BASE_COLORS[1],
                     card_position=0,
+                    player=Mock(),
                 ),
                 PlayedCard(
                     card=Card(special_card=MAGICIAN_NAME),
                     starting_color=BASE_COLORS[1],
                     card_position=1,
+                    player=Mock(),
                 ),
                 True,
                 id="two_magicians",
@@ -28,11 +32,13 @@ class TestPlayedCard:
                     card=Card(number=5, color=BASE_COLORS[1]),
                     starting_color=BASE_COLORS[1],
                     card_position=0,
+                    player=Mock(),
                 ),
                 PlayedCard(
                     card=Card(special_card=MAGICIAN_NAME),
                     starting_color=TRUMP_COLOR,
                     card_position=1,
+                    player=Mock(),
                 ),
                 False,
                 id="trump_vs_first_color",
@@ -42,11 +48,13 @@ class TestPlayedCard:
                     card=Card(color=BASE_COLORS[2], number=6),
                     starting_color=BASE_COLORS[1],
                     card_position=0,
+                    player=Mock(),
                 ),
                 PlayedCard(
                     card=Card(color=BASE_COLORS[2], number=8),
                     starting_color=BASE_COLORS[1],
                     card_position=1,
+                    player=Mock(),
                 ),
                 False,
                 id="number_comparison",
@@ -56,11 +64,13 @@ class TestPlayedCard:
                     card=Card(special_card=JESTER_NAME),
                     starting_color=BASE_COLORS[1],
                     card_position=0,
+                    player=Mock(),
                 ),
                 PlayedCard(
                     card=Card(special_card=JESTER_NAME),
                     starting_color=BASE_COLORS[1],
                     card_position=1,
+                    player=Mock(),
                 ),
                 True,
                 id="two_jesters",
@@ -70,11 +80,13 @@ class TestPlayedCard:
                     card=Card(special_card=MAGICIAN_NAME),
                     starting_color=BASE_COLORS[1],
                     card_position=0,
+                    player=Mock(),
                 ),
                 PlayedCard(
                     card=Card(number=13, color=BASE_COLORS[1]),
                     starting_color=BASE_COLORS[1],
                     card_position=1,
+                    player=Mock(),
                 ),
                 True,
                 id="magician_vs_other",
@@ -84,11 +96,13 @@ class TestPlayedCard:
                     card=Card(number=1, color=BASE_COLORS[1]),
                     starting_color=BASE_COLORS[1],
                     card_position=0,
+                    player=Mock(),
                 ),
                 PlayedCard(
                     card=Card(number=13, color=BASE_COLORS[2]),
                     starting_color=BASE_COLORS[1],
                     card_position=1,
+                    player=Mock(),
                 ),
                 True,
                 id="first_color_vs_other_color",
@@ -98,11 +112,13 @@ class TestPlayedCard:
                     card=Card(special_card=JESTER_NAME),
                     starting_color=BASE_COLORS[1],
                     card_position=1,
+                    player=Mock(),
                 ),
                 PlayedCard(
                     card=Card(number=13, color=BASE_COLORS[2]),
                     starting_color=BASE_COLORS[1],
                     card_position=0,
+                    player=Mock(),
                 ),
                 False,
                 id="jester_vs_other",

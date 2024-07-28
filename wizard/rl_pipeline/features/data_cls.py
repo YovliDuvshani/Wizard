@@ -11,8 +11,9 @@ class GenericCardSpecificFeatures:
     IS_JESTER: bool
     COLOR: int
     NUMBER: int
-    CAN_WIN_CURRENT_SUB_ROUND: bool | None = False
-    WILL_WIN_CURRENT_SUB_ROUND: bool | None = False
+    IS_PLAYABLE: bool
+    CAN_WIN_CURRENT_SUB_ROUND: bool = False
+    WILL_WIN_CURRENT_SUB_ROUND: bool = False
     NUMBER_CARDS_REMAINING_SAME_COLOR: int | None = None
     NUMBER_SUPERIOR_CARDS_REMAINING_SAME_COLOR: int | None = None
     NUMBER_INFERIOR_CARDS_REMAINING_SAME_COLOR: int | None = None
@@ -20,12 +21,8 @@ class GenericCardSpecificFeatures:
     NUMBER_SUPERIOR_CARDS_SAME_COLOR_IN_PLAYERS_HAND: int | None = None
     NUMBER_INFERIOR_CARDS_SAME_COLOR_IN_PLAYERS_HAND: int | None = None
     NUMBER_CARDS_REMAINING_AMONG_SPECIAL_TRUMP_AND_SAME_COLOR: int | None = None
-    NUMBER_SUPERIOR_CARDS_REMAINING_AMONG_SPECIAL_TRUMP_AND_SAME_COLOR: int | None = (
-        None
-    )
-    NUMBER_INFERIOR_CARDS_REMAINING_AMONG_SPECIAL_TRUMP_AND_SAME_COLOR: int | None = (
-        None
-    )
+    NUMBER_SUPERIOR_CARDS_REMAINING_AMONG_SPECIAL_TRUMP_AND_SAME_COLOR: int | None = None
+    NUMBER_INFERIOR_CARDS_REMAINING_AMONG_SPECIAL_TRUMP_AND_SAME_COLOR: int | None = None
 
 
 @dataclass
@@ -51,16 +48,10 @@ class GenericFeatures:
     generic_objective_context: GenericObjectiveContextFeatures
 
 
-FeatureGroups = (
-    GenericCardSpecificFeatures
-    | GenericCardsContextFeatures
-    | GenericObjectiveContextFeatures
-)
+FeatureGroups = GenericCardSpecificFeatures | GenericCardsContextFeatures | GenericObjectiveContextFeatures
 
 FeatureGroupTypes = (
-    type[GenericCardSpecificFeatures]
-    | type[GenericCardsContextFeatures]
-    | type[GenericObjectiveContextFeatures]
+    type[GenericCardSpecificFeatures] | type[GenericCardsContextFeatures] | type[GenericObjectiveContextFeatures]
 )
 
 

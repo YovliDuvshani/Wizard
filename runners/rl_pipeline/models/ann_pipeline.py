@@ -1,13 +1,13 @@
 import torch
 
 from config.common import NUMBER_OF_UNIQUE_CARDS
-from wizard.rl_pipeline.models.ann_pipeline import ANNDefinition, ANNPipeline
+from wizard.rl_pipeline.models.ann_pipeline import ANNPipeline, ANNSpecification
 
 ann = ANNPipeline(
-    card_ann_definition=ANNDefinition(3, [3], 5),
-    hand_ann_definition=ANNDefinition(5 * NUMBER_OF_UNIQUE_CARDS + 3, [3], 5),
-    strategy_ann_definition=ANNDefinition(5, [], 5),
-    q_ann_definition=ANNDefinition(10, [3, 4], 1),
+    card_ann_specification=ANNSpecification(3, [3], 5),
+    hand_ann_specification=ANNSpecification(5 * NUMBER_OF_UNIQUE_CARDS + 3, [3], 5),
+    strategy_ann_specification=ANNSpecification(5, [], 5),
+    q_ann_specification=ANNSpecification(10, [3, 4], 1),
 )
 
 ann.forward(
@@ -17,5 +17,4 @@ ann.forward(
     },
     hand_features=torch.tensor([1.0, 1.0, 1.0], requires_grad=True),
     strategy_features=torch.tensor([]),
-    playable_cards_id=[3, 8],
 )

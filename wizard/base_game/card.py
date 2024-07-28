@@ -28,13 +28,8 @@ class Card:
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Card):
-            if (
-                (self.number == other.number)
-                & (self.color == other.color)
-                & (self.special_card is None)
-            ) or (
-                (self.special_card == other.special_card)
-                & (self.special_card is not None)
+            if ((self.number == other.number) & (self.color == other.color) & (self.special_card is None)) or (
+                (self.special_card == other.special_card) & (self.special_card is not None)
             ):
                 return True
             return False
@@ -53,9 +48,7 @@ class Card:
                     return True
                 return False
             if self != other:
-                if (self.special_card == MAGICIAN_NAME) or (
-                    other.special_card == JESTER_NAME
-                ):
+                if (self.special_card == MAGICIAN_NAME) or (other.special_card == JESTER_NAME):
                     return True
             return False
         return NotImplemented

@@ -4,8 +4,7 @@ from pathlib import Path
 import pandas as pd
 
 from project_path import ABS_PATH_PROJECT
-from wizard.exhaustive_simulation.simulation_result import \
-    SimulationResultMetadata
+from wizard.exhaustive_simulation.simulation_result import SimulationResultMetadata
 
 
 class SimulationResultType(Enum):

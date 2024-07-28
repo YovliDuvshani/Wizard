@@ -3,7 +3,7 @@ from typing import Any, List
 
 from wizard.base_game.card import Card
 from wizard.base_game.played_card import PlayedCard
-from wizard.base_game.player import Player
+from wizard.base_game.player.player import Player
 
 
 @dataclass
@@ -38,21 +38,13 @@ class GetTargetsForProbabilityEstimation:
         return (
             1
             if card
-            in [
-                w_played_card.card
-                for w_played_card in self._winner_per_round
-                if w_played_card.player == self._player
-            ]
+            in [w_played_card.card for w_played_card in self._winner_per_round if w_played_card.player == self._player]
             else 0
         )
 
     def _get_target_prob_win_after(self, card: Card):
         cards_not_directly_played = self.remove_duplicates(
-            [
-                c
-                for c in self._flattened_playable_cards
-                if self._flattened_playable_cards.count(c) >= 2
-            ]
+            [c for c in self._flattened_playable_cards if self._flattened_playable_cards.count(c) >= 2]
         )
         if card in cards_not_directly_played:
             return (
@@ -70,9 +62,7 @@ class GetTargetsForProbabilityEstimation:
     @property
     def _flattened_playable_cards(self):
         return [
-            playable_card
-            for cards_per_round in self._playable_cards_per_round
-            for playable_card in cards_per_round
+            playable_card for cards_per_round in self._playable_cards_per_round for playable_card in cards_per_round
         ]
 
     @staticmethod

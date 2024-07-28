@@ -25,9 +25,7 @@ class ListCards:
         delimiter: str = DELIMITER_COMBINED_REPRESENTATION,
         sort: bool = True,
     ):
-        list_cards = cls(
-            cards=list(map(Card.from_representation, representation.split(delimiter)))
-        )
+        list_cards = cls(cards=list(map(Card.from_representation, representation.split(delimiter))))
         if sort:
             list_cards.cards.sort(reverse=True)
         return list_cards

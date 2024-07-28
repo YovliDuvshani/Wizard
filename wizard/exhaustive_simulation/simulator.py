@@ -10,10 +10,9 @@ from wizard.base_game.card import Card
 from wizard.base_game.deck import Deck
 from wizard.base_game.game import Game
 from wizard.base_game.list_cards import ListCards
-from wizard.base_game.player import DefinedStrategyPlayer
+from wizard.base_game.player.player import DefinedStrategyPlayer
 from wizard.common import iterator_to_list_of_list
-from wizard.exhaustive_simulation.hand_combinations import \
-    HandCombinationsTwoCards
+from wizard.exhaustive_simulation.hand_combinations import HandCombinationsTwoCards
 from wizard.exhaustive_simulation.simulation_result import SimulationResult
 
 IMPLEMENTED_COMBINATIONS = {2: HandCombinationsTwoCards}
@@ -49,9 +48,7 @@ class SimulatorWithOneLearningPlayer(Simulator):
         super().__init__(players=players, initial_deck=initial_deck)
         self._learning_player = learning_player
         self._number_trial_each_combination = number_trial_each_combination
-        self._hand_combinations_class = IMPLEMENTED_COMBINATIONS[
-            NUMBER_CARDS_PER_PLAYER
-        ]
+        self._hand_combinations_class = IMPLEMENTED_COMBINATIONS[NUMBER_CARDS_PER_PLAYER]
 
     def simulate(self):
         result_logger: List[SimulationResult] = []
@@ -79,12 +76,9 @@ class SimulatorWithOneLearningPlayer(Simulator):
                 game.definition.deck.reset_deck()
         return result_logger
 
-    def _simulate_all_outcome_one_round(
-        self, game: Game, trial_number: int, result_logger: List[SimulationResult]
-    ):
+    def _simulate_all_outcome_one_round(self, game: Game, trial_number: int, result_logger: List[SimulationResult]):
         all_playing_order_per_player: List[List[List[Card]]] = [
-            iterator_to_list_of_list(itertools.permutations(player.cards))
-            for player in self._players
+            iterator_to_list_of_list(itertools.permutations(player.cards)) for player in self._players
         ]
         all_playing_order: List[List[List[Card]]] = iterator_to_list_of_list(
             itertools.product(*all_playing_order_per_player)
@@ -105,7 +99,7 @@ class SimulatorWithOneLearningPlayer(Simulator):
         result_logger: List[SimulationResult],
     ):
         for i, player in enumerate(self._players):
-            player.provide_strategy(cards_ordered_by_priority=playing_order[i])
+            player.provide_strategy(set_card_play_priority=playing_order[i])
         game.reset_game()
         game.play_game()
         result_logger.append(
@@ -118,8 +112,7 @@ class SimulatorWithOneLearningPlayer(Simulator):
                     cards=playing_order[self._players.index(self._learning_player)]
                 ).to_single_representation(sort=False),
                 number_of_turns_won={
-                    player.identifier: game.state.number_of_turns_won[player]
-                    for player in self._players
+                    player.identifier: game.state.number_of_turns_won[player] for player in self._players
                 },
             )
         )
