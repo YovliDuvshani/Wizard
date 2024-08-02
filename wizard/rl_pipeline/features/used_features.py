@@ -22,6 +22,7 @@ USED_FEATURES = [
         Discrete(NUMBER_CARDS_PER_COLOR + 1),
         group=GenericCardSpecificFeatures,
     ),
+    # FeatureDescription("NUMBER_SUPERIOR_CARDS_REMAINING_SAME_COLOR", Discrete(NUMBER_CARDS_PER_COLOR + 1), group=GenericCardSpecificFeatures),
     FeatureDescription("IS_PLAYABLE", Discrete(1), group=GenericCardSpecificFeatures),
     FeatureDescription(
         "NUMBER_CARDS_REMAINING_IN_PLAYER_HAND",

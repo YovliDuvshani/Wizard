@@ -9,6 +9,8 @@ from wizard.base_game.player.card_play_policy import (
     BaseCardPlayPolicy,
     DefinedCardPlayPolicy,
     DQNCardPlayPolicy,
+    HighestCardPlayPolicy,
+    LowestCardPlayPolicy,
     RandomCardPlayPolicy,
     StatisticalCardPlayPolicy,
 )
@@ -28,12 +30,14 @@ class Player:
         identifier: int,
         prediction_policy: Type[BasePredictionPolicy],
         card_play_policy: Type[BaseCardPlayPolicy],
+        name: str | None = None,
         set_prediction: int | None = None,
         set_card_play_priority: list[Card] | None = None,
         stat_table: pd.DataFrame | None = None,
         agent: DQNAgent | None = None,
     ):
         self.identifier = identifier
+        self.name = name
         self.card_play_policy = card_play_policy
         self.prediction_policy = prediction_policy
 
@@ -81,6 +85,11 @@ RandomPlayer = partial(
     Player,
     prediction_policy=RandomPredictionPolicy,
     card_play_policy=RandomCardPlayPolicy,
+)
+MaxRandomPlayer = partial(
+    Player,
+    prediction_policy=RandomPredictionPolicy,
+    card_play_policy=HighestCardPlayPolicy,
 )
 DefinedStrategyPlayer = partial(
     Player,

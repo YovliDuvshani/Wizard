@@ -4,7 +4,7 @@ import numpy as np
 
 from wizard.base_game.card import Card
 from wizard.base_game.list_cards import ListCards
-from wizard.exhaustive_simulation.hand_combinations import HandCombinationsTwoCards
+from wizard.simulation.exhaustive.hand_combinations import HandCombinationsTwoCards
 
 
 class BaseCardPlayPolicy(abc.ABC):
@@ -41,6 +41,16 @@ class BaseCardPlayPolicy(abc.ABC):
 class RandomCardPlayPolicy(BaseCardPlayPolicy):
     def execute(self) -> Card:
         return np.random.choice(self.playable_cards())  # type: ignore
+
+
+class HighestCardPlayPolicy(BaseCardPlayPolicy):
+    def execute(self) -> Card:
+        return max(self.playable_cards())
+
+
+class LowestCardPlayPolicy(BaseCardPlayPolicy):
+    def execute(self) -> Card:
+        return min(self.playable_cards())
 
 
 class DefinedCardPlayPolicy(BaseCardPlayPolicy):

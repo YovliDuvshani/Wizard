@@ -1,7 +1,7 @@
 import pandas as pd
 
-from wizard.exhaustive_simulation.simulation_result import SimulationResultMetadata
-from wizard.exhaustive_simulation.simulation_result_storage import (
+from wizard.simulation.exhaustive.simulation_result import SimulationResultMetadata
+from wizard.simulation.exhaustive.simulation_result_storage import (
     SimulationResultStorage,
     SimulationResultType,
 )

@@ -13,6 +13,7 @@ class DQNAgent:
     def __init__(self, model: ANNPipeline):
         self._model = model
         self._optimizer = optim.Adam(model.parameters(), lr=ALPHA)
+        self._deterministic_action_choice = False
 
     def train(
         self,
@@ -37,7 +38,7 @@ class DQNAgent:
                 self._model.forward(*next_state_feat_torch), epsilon_exploration_rate=0
             )
         q_next_state = 0
-        loss = (GAMMA * q_next_state + reward - q_state).pow(2).mean()
+        loss = (GAMMA * q_next_state + reward - q_state).pow(2).mean()  # TODO: Replace with Huber loss
         loss.backward()
         self._optimizer.step()
         self._optimizer.zero_grad()
@@ -52,7 +53,11 @@ class DQNAgent:
     ):
         with torch.no_grad():
             state_feat_torch = self._convert_np_to_features(state_feat)
-            action, _ = self._select_eps_greedy_action(self._model.forward(*state_feat_torch))
+            if self._deterministic_action_choice:
+                eps_exploration_rate = 0
+            else:
+                eps_exploration_rate = EPSILON_EXPLORATION_RATE
+            action, _ = self._select_eps_greedy_action(self._model.forward(*state_feat_torch), eps_exploration_rate)
             return action
 
     def get_highest_rewards_predictions(
@@ -100,3 +105,6 @@ class DQNAgent:
             torch.tensor(state_feat[1], requires_grad=True, dtype=float),
             torch.tensor(state_feat[2], requires_grad=True, dtype=float),
         )
+
+    def set_deterministic_action_choice(self, deterministic: bool):
+        self._deterministic_action_choice = deterministic

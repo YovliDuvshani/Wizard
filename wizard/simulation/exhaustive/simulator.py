@@ -12,8 +12,8 @@ from wizard.base_game.game import Game
 from wizard.base_game.list_cards import ListCards
 from wizard.base_game.player.player import DefinedStrategyPlayer
 from wizard.common import iterator_to_list_of_list
-from wizard.exhaustive_simulation.hand_combinations import HandCombinationsTwoCards
-from wizard.exhaustive_simulation.simulation_result import SimulationResult
+from wizard.simulation.exhaustive.hand_combinations import HandCombinationsTwoCards
+from wizard.simulation.exhaustive.simulation_result import SimulationResult
 
 IMPLEMENTED_COMBINATIONS = {2: HandCombinationsTwoCards}
 

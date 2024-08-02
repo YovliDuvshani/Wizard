@@ -2,7 +2,7 @@ from config.common import BASE_COLORS
 from wizard.base_game.card import Card
 from wizard.base_game.deck import Deck
 from wizard.base_game.list_cards import ListCards
-from wizard.exhaustive_simulation.hand_combinations import HandCombinationsTwoCards
+from wizard.simulation.exhaustive.hand_combinations import HandCombinationsTwoCards
 
 hand_combination_class = HandCombinationsTwoCards(Deck())
 

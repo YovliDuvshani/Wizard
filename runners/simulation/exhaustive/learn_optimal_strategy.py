@@ -3,13 +3,13 @@ import pandas as pd
 from config.common import NUMBER_CARDS_PER_PLAYER, NUMBER_OF_PLAYERS
 from wizard.base_game.deck import Deck
 from wizard.base_game.player.player import DefinedStrategyPlayer
-from wizard.exhaustive_simulation.simulation_result import SimulationResultMetadata
-from wizard.exhaustive_simulation.simulation_result_storage import (
+from wizard.simulation.exhaustive.simulation_result import SimulationResultMetadata
+from wizard.simulation.exhaustive.simulation_result_storage import (
     SimulationResultStorage,
     SimulationResultType,
 )
-from wizard.exhaustive_simulation.simulator import SimulatorWithOneLearningPlayer
-from wizard.exhaustive_simulation.survey_simulation_result import SurveySimulationResult
+from wizard.simulation.exhaustive.simulator import SimulatorWithOneLearningPlayer
+from wizard.simulation.exhaustive.survey_simulation_result import SurveySimulationResult
 
 # profiler = Profiler()
 # profiler.start()

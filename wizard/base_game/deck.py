@@ -57,7 +57,7 @@ class Deck:
                 if card == card_to_suppress:
                     self.cards.remove(card)
                     break
-        self.initial_cards = self.cards  # Useful for exhaustive_simulation purpose
+        self.initial_cards = self.cards  # Useful for exhaustive simulation purpose
 
     def reset_deck(self):
         self.cards = self.initial_cards.copy()
