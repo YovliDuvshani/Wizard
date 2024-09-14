@@ -2,7 +2,7 @@ import random
 
 import numpy as np
 import torch
-from torch import optim
+from torch import optim, nn
 
 from config.common import NUMBER_CARDS_PER_PLAYER
 from config.rl import ALPHA, EPSILON_EXPLORATION_RATE, GAMMA
@@ -14,6 +14,8 @@ class DQNAgent:
         self._model = model
         self._optimizer = optim.Adam(model.parameters(), lr=ALPHA)
         self._deterministic_action_choice = False
+        self._loss = torch.tensor(0, dtype=float)
+        self.n_iter = 0
 
     def train(
         self,
@@ -38,10 +40,15 @@ class DQNAgent:
                 self._model.forward(*next_state_feat_torch), epsilon_exploration_rate=0
             )
         q_next_state = 0
-        loss = (GAMMA * q_next_state + reward - q_state).pow(2).mean()  # TODO: Replace with Huber loss
-        loss.backward()
-        self._optimizer.step()
-        self._optimizer.zero_grad()
+
+        self._loss += (GAMMA * q_next_state + reward - q_state).pow(2).mean()  # TODO: Replace with Huber loss
+        self.n_iter += 1
+        if self.n_iter % 100 == 99:
+            nn.utils.clip_grad_norm_(self._model.parameters(), max_norm=1)
+            self._loss.backward()
+            self._optimizer.step()
+            self._optimizer.zero_grad()
+            self._loss = torch.tensor(0, dtype=float)
 
     def select_action(
         self,

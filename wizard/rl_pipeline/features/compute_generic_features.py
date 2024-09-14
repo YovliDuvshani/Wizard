@@ -19,6 +19,8 @@ from wizard.rl_pipeline.features.data_cls import (
     GenericObjectiveContextFeatures,
 )
 
+# TODO: Normalize the features
+
 
 class ComputeGenericFeatures:
     def __init__(self, game: Game, player: Player):
@@ -39,20 +41,17 @@ class ComputeGenericFeatures:
         kwargs = {}
         kwargs.update(self._compute_base_card_feature(card))
         kwargs.update(self._compute_outcome_of_playing_card_feature(card))
-
-        if card.special_card is None:
-            kwargs.update(self._compute_advanced_card_feature(card))
-
+        kwargs.update(self._compute_advanced_card_feature(card))
         return GenericCardSpecificFeatures(**kwargs)
 
     def _compute_base_card_feature(self, card: Card):
         return {
+            "IS_PLAYABLE": card in self._player.card_play_policy(self._player).playable_cards(),
             "IS_TRUMP": card.color == TRUMP_COLOR,
             "IS_MAGICIAN": card.special_card == MAGICIAN_NAME,
             "IS_JESTER": card.special_card == JESTER_NAME,
             "COLOR": BASE_COLORS.index(card.color) + 1 if card.color else 0,
             "NUMBER": card.number if card.number else 0,
-            "IS_PLAYABLE": card in self._player.card_play_policy(self._player).playable_cards(),
         }
 
     def _compute_advanced_card_feature(self, card: Card):

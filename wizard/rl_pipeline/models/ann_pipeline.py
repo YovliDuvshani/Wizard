@@ -67,7 +67,7 @@ class ANNPipeline(torch.nn.Module):
 
         q_per_card = {}
         playable_cards_id = [
-            card_id for card_id, card_features in cards_features.items() if card_features[-1].item() == 1.0
+            card_id for card_id, card_features in cards_features.items() if card_features[0].item() == 1.0
         ]  # Short-term solution
         for card_id in playable_cards_id:
             q_ann_input_features = torch.concat((strategy_representation, card_representations[card_id]))

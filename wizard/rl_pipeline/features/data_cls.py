@@ -6,12 +6,12 @@ from gymnasium.core import ObsType
 
 @dataclass
 class GenericCardSpecificFeatures:
+    IS_PLAYABLE: bool
     IS_TRUMP: bool
     IS_MAGICIAN: bool
     IS_JESTER: bool
     COLOR: int
     NUMBER: int
-    IS_PLAYABLE: bool
     CAN_WIN_CURRENT_SUB_ROUND: bool = False
     WILL_WIN_CURRENT_SUB_ROUND: bool = False
     NUMBER_CARDS_REMAINING_SAME_COLOR: int | None = None

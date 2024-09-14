@@ -34,7 +34,8 @@ class RandomPredictionPolicy(BasePredictionPolicy):
 
 class DefinedPredictionPolicy(BasePredictionPolicy):
     def execute(self) -> int:
-        assert (prediction := self._player.set_prediction), "No prediction given"
+        prediction = self._player.set_prediction
+        assert prediction is not None, "No prediction given"
         if prediction in self._possible_predictions():
             return prediction
         return prediction + 1
