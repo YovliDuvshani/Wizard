@@ -13,7 +13,7 @@ class HandCombinations(abc.ABC):
         self.deck = deck or Deck()
 
     @abc.abstractmethod
-    def build_all_possible_hand_combinations(self):
+    def build_all_possible_hand_combinations(self) -> List[List[Card]]:
         pass
 
     @staticmethod
@@ -24,6 +24,15 @@ class HandCombinations(abc.ABC):
     @staticmethod
     def _get_all_subset_size_n(list_cards: List[Card], n: int) -> List[List[Card]]:
         return iterator_to_list_of_list(itertools.combinations(list_cards, n))
+
+
+class HandCombinationsOneCard(HandCombinations):
+    def build_all_possible_hand_combinations(self) -> List[List[Card]]:
+        return [[card] for card in self.deck.cards]
+
+    @staticmethod
+    def list_cards_to_hand_combination(list_cards: List[Card]) -> List[Card]:
+        pass
 
 
 class HandCombinationsTwoCards(HandCombinations):
@@ -112,3 +121,6 @@ class HandCombinationsTwoCards(HandCombinations):
             Card(color=BASE_COLORS[2], number=list_cards[0].number),
             Card(color=BASE_COLORS[1], number=list_cards[1].number),
         ]
+
+
+IMPLEMENTED_COMBINATIONS = {1: HandCombinationsOneCard, 2: HandCombinationsTwoCards}

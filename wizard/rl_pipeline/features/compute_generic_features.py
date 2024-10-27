@@ -50,8 +50,8 @@ class ComputeGenericFeatures:
             "IS_TRUMP": card.color == TRUMP_COLOR,
             "IS_MAGICIAN": card.special_card == MAGICIAN_NAME,
             "IS_JESTER": card.special_card == JESTER_NAME,
-            "COLOR": BASE_COLORS.index(card.color) + 1 if card.color else 0,
-            "NUMBER": card.number if card.number else 0,
+            "COLOR": (BASE_COLORS.index(card.color) + 1) / 4 if card.color else 0,  # TODO: Workaround
+            "NUMBER": card.number / 13 if card.number else 0,  # TODO: Workaround
         }
 
     def _compute_advanced_card_feature(self, card: Card):
@@ -126,6 +126,7 @@ class ComputeGenericFeatures:
                 else 0
             ),
             TOTAL_NUMBER_OF_ROUNDS=NUMBER_CARDS_PER_PLAYER,
+            IS_PLAYER_STARTING=self._game.next_player_playing is self._player,
         )
 
     @cached_property

@@ -39,6 +39,7 @@ class GenericObjectiveContextFeatures:
     NUMBER_ROUNDS_TO_WIN: int
     NUMBER_ROUNDS_ALREADY_WON: int
     TOTAL_NUMBER_OF_ROUNDS: int
+    IS_PLAYER_STARTING: int
 
 
 @dataclass

@@ -51,10 +51,10 @@ class Deck:
     def shuffle(self) -> None:
         np.random.shuffle(self.cards)
 
-    def remove_cards(self, cards_to_suppress: List[Card]):
-        for card_to_suppress in cards_to_suppress:
+    def remove_cards(self, cards_to_remove: List[Card]):
+        for card_to_remove in cards_to_remove:
             for card in self.cards:
-                if card == card_to_suppress:
+                if card == card_to_remove:
                     self.cards.remove(card)
                     break
         self.initial_cards = self.cards  # Useful for exhaustive simulation purpose

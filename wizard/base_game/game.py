@@ -1,5 +1,6 @@
 # mypy: disable-error-code="union-attr"
 from dataclasses import dataclass
+from random import choice
 from typing import Dict, List, Optional
 
 from config.common import NUMBER_CARDS_PER_PLAYER, NUMBER_OF_PLAYERS, TRUMP_COLOR
@@ -56,22 +57,50 @@ class Game:
         )
         self._initialize_game_state()
 
+    def request_predictions(self) -> None:
+        for player in self.ordered_list_players:
+            self.state.predictions[player] = player.make_prediction()
+
+    def play_game(self, print_results: bool = False) -> None:
+        terminal = self._play_next_card(print_results=print_results)
+        while not terminal:
+            terminal = self._play_next_card(print_results=print_results)
+
+    def get_to_first_state_for_given_player(self, player: Player):
+        while self.next_player_playing != player:
+            self._play_next_card(print_results=False)
+
+    def get_to_next_afterstate_for_given_player(self, player: Player, print_results: bool = False) -> Terminal:
+        assert self.next_player_playing == player, "Learning player should have been playing"
+
+        no_card_was_played = True
+        while self.next_player_playing != player or no_card_was_played:
+            terminal = self._play_next_card(print_results)
+            no_card_was_played = False
+            if terminal:
+                return True
+        return False
+
     def _assign_players(self, players: List[Player]) -> None:
         for player in players:
             player.assign_game(self)
 
     @staticmethod
     def _remove_one_trump_card(deck: Deck) -> Card:  # type: ignore
-        for index, card in enumerate(deck.cards):
-            if card.color == TRUMP_COLOR:
-                deck.cards = deck.cards[:index] + deck.cards[index + 1 :]
-                return card
+        remaining_trump_cards = [card for card in deck.cards if card.color == TRUMP_COLOR]
+        trump_card_to_remove = choice(remaining_trump_cards)
+        index_trump_card_to_remove = deck.cards.index(trump_card_to_remove)
+        deck.cards = deck.cards[:index_trump_card_to_remove] + deck.cards[index_trump_card_to_remove + 1 :]
+        return trump_card_to_remove
 
     @staticmethod
     def _distribute_cards(players: List[Player], deck: Deck) -> None:
         assert players is not None, "No players"
         assert deck is not None, "Deck of cards is missing"
         assert NUMBER_CARDS_PER_PLAYER * NUMBER_OF_PLAYERS < len(deck.cards), "Not enough cards"
+
+        # deck.remove_cards(cards_to_remove=[Card.from_representation("1 RED")])
+        # players[0].receive_cards([Card.from_representation("1 RED")])
 
         for player in players:
             player_has_received_cards = player.receive_cards(deck.cards[0:NUMBER_CARDS_PER_PLAYER])
@@ -92,31 +121,7 @@ class Game:
             ),
         )
 
-    def request_predictions(self) -> None:
-        for player in self.ordered_list_players:
-            self.state.predictions[player] = player.make_prediction()
-
-    def play_game(self, print_results: bool = False) -> None:
-        terminal = self.play_next_card(print_results=print_results)
-        while not terminal:
-            terminal = self.play_next_card(print_results=print_results)
-
-    def get_to_first_state_for_given_player(self, player: Player):
-        while self.next_player_playing != player:
-            self.play_next_card(print_results=False)
-
-    def get_to_next_afterstate_for_given_player(self, player: Player, print_results: bool = False) -> Terminal:
-        assert self.next_player_playing == player, "Learning player should have been playing"
-
-        no_card_was_played = True
-        while self.next_player_playing != player or no_card_was_played:
-            terminal = self.play_next_card(print_results)
-            no_card_was_played = False
-            if terminal:
-                return True
-        return False
-
-    def play_next_card(self, print_results: bool) -> Terminal:
+    def _play_next_card(self, print_results: bool) -> Terminal:
         player = self.next_player_playing
         card = player.play_card()
         if card.color and not self.state.round_specifics.starting_color:

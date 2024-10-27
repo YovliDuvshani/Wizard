@@ -12,10 +12,8 @@ from wizard.base_game.game import Game
 from wizard.base_game.list_cards import ListCards
 from wizard.base_game.player.player import DefinedStrategyPlayer
 from wizard.common import iterator_to_list_of_list
-from wizard.simulation.exhaustive.hand_combinations import HandCombinationsTwoCards
+from wizard.simulation.exhaustive.hand_combinations import IMPLEMENTED_COMBINATIONS
 from wizard.simulation.exhaustive.simulation_result import SimulationResult
-
-IMPLEMENTED_COMBINATIONS = {2: HandCombinationsTwoCards}
 
 
 class Simulator(abc.ABC):
@@ -57,7 +55,7 @@ class SimulatorWithOneLearningPlayer(Simulator):
         ).build_all_possible_hand_combinations()
         for combination in hand_combinations:
             deck = deepcopy(self._initial_deck)
-            deck.remove_cards(cards_to_suppress=combination)
+            deck.remove_cards(cards_to_remove=combination)
             self._learning_player.receive_cards(combination)
             for trial_number in range(self._number_trial_each_combination):
                 self._learning_player.reset_hand()

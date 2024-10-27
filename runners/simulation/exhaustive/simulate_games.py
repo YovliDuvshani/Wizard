@@ -44,8 +44,6 @@ players = [
     for i in range(3)
 ]
 
-players = [RandomPlayer(i) for i in range(3)]
-
 games_scoring = []
 for _ in range(NUMBER_TRIALS):
     game = Game()

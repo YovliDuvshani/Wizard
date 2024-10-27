@@ -1,11 +1,13 @@
 import uuid
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import torch
 from plotly import express as px
 from pyinstrument import Profiler
+from torch.utils.tensorboard import SummaryWriter
 
 from config.common import NUMBER_CARDS_PER_PLAYER, NUMBER_OF_PLAYERS
 from project_path import ABS_PATH_PROJECT
@@ -23,7 +25,11 @@ from wizard.base_game.player.prediction_policy import (
 )
 from wizard.rl_pipeline.agents.DQNAgent import DQNAgent
 from wizard.rl_pipeline.env.single_player_learning_env import SinglePlayerLearningEnv
-from wizard.rl_pipeline.models.ann_pipeline import ANNPipeline, ANNSpecification
+from wizard.rl_pipeline.models.base_ann import BaseANN
+from wizard.rl_pipeline.models.multi_step_ann import ANNSpecification, MultiStepANN
+from wizard.rl_pipeline.monitoring.compute_q_value_all_hand_combinations import (
+    ComputeQValueAllHandCombinationsFirstPlayer,
+)
 from wizard.simulation.exhaustive.simulation_result import SimulationResultMetadata
 from wizard.simulation.exhaustive.simulation_result_storage import (
     SimulationResultStorage,
@@ -34,12 +40,13 @@ from wizard.simulation.exhaustive.survey_simulation_result import (
 )
 from wizard.simulation.simulate_pre_defined_games import SimulatePreDefinedGames
 
-model = ANNPipeline(
-    card_ann_specification=ANNSpecification(hidden_layers_size=[500, 500, 500], output_size=100),
-    hand_ann_specification=ANNSpecification(hidden_layers_size=[100, 100], output_size=100),
-    strategy_ann_specification=ANNSpecification(hidden_layers_size=[500, 500, 500], output_size=100),
-    q_ann_specification=ANNSpecification(hidden_layers_size=[100, 100, 100]),
+model = MultiStepANN(
+    card_ann_specification=ANNSpecification(hidden_layers_size=[], output_size=20),
+    hand_ann_specification=ANNSpecification(hidden_layers_size=[], output_size=10),
+    strategy_ann_specification=ANNSpecification(hidden_layers_size=[], output_size=50),
+    q_ann_specification=ANNSpecification(hidden_layers_size=[]),
 )
+# model = BaseANN(ANNSpecification(hidden_layers_size=[1000, 1000]))
 
 agent = DQNAgent(model)
 
@@ -49,64 +56,86 @@ players = [
         prediction_policy=DefinedPredictionPolicy,
         card_play_policy=DQNCardPlayPolicy,
         agent=agent,
-        set_prediction=2,
-        stat_table=transform_surveyed_df_to_have_predictions_as_index(
-            SimulationResultStorage(
-                simulation_result_metadata=SimulationResultMetadata(
-                    simulation_id=195991601809031998,
-                    learning_player_id=0,
-                    number_of_players=NUMBER_OF_PLAYERS,
-                    number_of_cards_per_player=NUMBER_CARDS_PER_PLAYER,
-                    total_number_trial=1000,
-                ),
-                simulation_type=SimulationResultType.SURVEY,
-            ).read_simulation_result()
-        ),
+        set_prediction=1,
+        # stat_table=transform_surveyed_df_to_have_predictions_as_index(
+        #     SimulationResultStorage(
+        #         simulation_result_metadata=SimulationResultMetadata(
+        #             simulation_id=195991601809031998,
+        #             learning_player_id=0,
+        #             number_of_players=NUMBER_OF_PLAYERS,
+        #             number_of_cards_per_player=NUMBER_CARDS_PER_PLAYER,
+        #             total_number_trial=1000,
+        #         ),
+        #         simulation_type=SimulationResultType.SURVEY,
+        #     ).read_simulation_result()
+        # ),
     )
 ] + [RandomPlayer(i) for i in range(1, NUMBER_OF_PLAYERS)]
-players_per_defined_simulation = [players[0]] + [MaxRandomPlayer(i) for i in range(1, NUMBER_OF_PLAYERS)]
+players_pre_defined_simulation = [players[0]] + [MaxRandomPlayer(i) for i in range(1, NUMBER_OF_PLAYERS)]
 
 env = SinglePlayerLearningEnv(players=players, starting_player=players[0], learning_player=players[0])
 
 simulate_pre_defined_games_test_set = SimulatePreDefinedGames(num_games=500)
 simulate_pre_defined_games_test_set.assign_players(
-    players=players_per_defined_simulation, target_player=players[0], player_starting=players[0]
+    players=players_pre_defined_simulation, target_player=players[0], player_starting=players[0]
 )
 
 simulate_pre_defined_games_val_set = SimulatePreDefinedGames(num_games=500)
 simulate_pre_defined_games_val_set.assign_players(
-    players=players_per_defined_simulation, target_player=players[0], player_starting=players[0]
+    players=players_pre_defined_simulation, target_player=players[0], player_starting=players[0]
 )
 
-profiler = Profiler()
-profiler.start()
+# profiler = Profiler()
+# profiler.start()
+
+NUMBER_OF_EPOCH = 120_000
 
 run_id = uuid.uuid4()
 
+writer = SummaryWriter("../../runs")
+state = env.reset()[0]
+state_tensor = agent._convert_array_to_features(state)
+writer.add_graph(model, state_tensor)
+
+q_values_all_combinations = {}
 rewards_validation_games = {}
 rewards_test_games = {}
-for i in range(150_001):
+losses = []
+for i in range(NUMBER_OF_EPOCH + 1):
     if i % 2000 == 0:
         agent.set_deterministic_action_choice(True)
         rewards_validation_games[i] = simulate_pre_defined_games_val_set.execute()
         rewards_test_games[i] = simulate_pre_defined_games_test_set.execute()
         agent.set_deterministic_action_choice(False)
         print(f"Iteration {i}")
-        model_path = f"{ABS_PATH_PROJECT}/trained_models/run={run_id}/iteration={i}"
-        Path(model_path).parent.mkdir(parents=True, exist_ok=True)
-        torch.save(model.state_dict(), model_path)
-        if i % 20000 == 0:
-            best_model_path = f"{ABS_PATH_PROJECT}/trained_models/run={run_id}/iteration={max(rewards_validation_games, key=rewards_validation_games.get)}"
-            model.load_state_dict(torch.load(best_model_path, weights_only=True))
-            agent._loss = torch.tensor(0, dtype=float)
+        q_values_all_combinations[i] = ComputeQValueAllHandCombinationsFirstPlayer(players[0]).execute()
+        # model_path = f"{ABS_PATH_PROJECT}/trained_models/run={run_id}/iteration={i}"
+        # Path(model_path).parent.mkdir(parents=True, exist_ok=True)
+        # torch.save(model.state_dict(), model_path)
+        # if i % 1_000_000 == 0:
+        #     best_model_path = f"{ABS_PATH_PROJECT}/trained_models/run={run_id}/iteration={max(rewards_validation_games, key=rewards_validation_games.get)}"
+        #     model.load_state_dict(torch.load(best_model_path, weights_only=True))
+        #     agent._loss = torch.tensor(0, dtype=float)
 
     terminal = False
     state = env.reset()[0]
     while not terminal:
         next_state, reward, terminal, _, _ = env.step(None)
         if players[0].card_play_policy is DQNCardPlayPolicy or players[0].prediction_policy is DQNPredictionPolicy:
-            agent.train(state, next_state, reward)
+            loss = agent.train(state, next_state, reward)
+            losses.append(loss)
+            writer.add_scalar("loss", loss, i)
         state = next_state
+
+writer.close()
+
+df_exhaustive = pd.read_csv(
+    "../../simulation_result/number_players_3/number_cards_per_player_1/learning_player_id_0/survey/1000_trials_id_-771010528501202911.csv"
+)[["tested_combination", "score_prediction_1"]]
+df_dqn = pd.DataFrame.from_dict(q_values_all_combinations[NUMBER_OF_EPOCH], orient="index")
+q_comparisons = df_exhaustive.set_index("tested_combination").join(df_dqn, how="left")
+px.scatter(q_comparisons).show()
+
 
 challenger_players = {
     name: Player(
@@ -137,13 +166,16 @@ challenger_players = {
     ]
 }
 
-profiler.stop()
-profiler.open_in_browser()
+# profiler.stop()
+# profiler.open_in_browser()
+
+loss_freq_500 = [np.mean(losses[500 * i : 500 * (i + 1)]) for i in range(100)]
+px.line(loss_freq_500).show()
 
 challenger_results = {}
 for name, player in challenger_players.items():
     simulate_pre_defined_games_test_set.assign_players(
-        players=[player] + players_per_defined_simulation[1:], target_player=player, player_starting=player
+        players=[player] + players_pre_defined_simulation[1:], target_player=player, player_starting=player
     )
     challenger_results[name] = simulate_pre_defined_games_test_set.execute()
 
@@ -157,7 +189,7 @@ fig.show()
 challenger_results = {}
 for name, player in challenger_players.items():
     simulate_pre_defined_games_val_set.assign_players(
-        players=[player] + players_per_defined_simulation[1:], target_player=player, player_starting=player
+        players=[player] + players_pre_defined_simulation[1:], target_player=player, player_starting=player
     )
     challenger_results[name] = simulate_pre_defined_games_val_set.execute()
 

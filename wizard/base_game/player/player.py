@@ -10,7 +10,6 @@ from wizard.base_game.player.card_play_policy import (
     DefinedCardPlayPolicy,
     DQNCardPlayPolicy,
     HighestCardPlayPolicy,
-    LowestCardPlayPolicy,
     RandomCardPlayPolicy,
     StatisticalCardPlayPolicy,
 )
@@ -53,12 +52,15 @@ class Player:
     def assign_game(self, game):
         self.game = game
 
-    def receive_cards(self, cards: List[Card]):
+    def receive_cards(self, cards: List[Card]) -> bool:
         if not self.cards:
             self.cards = cards
             self.initial_cards = cards.copy()
             return True
         return False
+
+    def drop_hand(self):
+        self.cards = []
 
     def reset_hand(self) -> None:
         self.cards = self.initial_cards.copy()
@@ -76,7 +78,7 @@ class Player:
     def select_card_to_play(self) -> Card:
         return self.card_play_policy(self).execute()
 
-    def provide_strategy(self, set_prediction: int, set_card_play_priority: list[Card] | None):
+    def provide_strategy(self, set_prediction: int | None = None, set_card_play_priority: list[Card] | None = None):
         self.set_prediction = set_prediction
         self.set_card_play_priority = set_card_play_priority
 

@@ -31,6 +31,11 @@ USED_FEATURES = [
         group=GenericCardSpecificFeatures,
     ),
     FeatureDescription(
+        "NUMBER_SUPERIOR_CARDS_REMAINING_AMONG_SPECIAL_TRUMP_AND_SAME_COLOR",
+        Discrete(NUMBER_CARDS_PER_COLOR * 2 + 1),
+        group=GenericCardSpecificFeatures,
+    ),
+    FeatureDescription(
         "NUMBER_CARDS_REMAINING_IN_PLAYER_HAND",
         Discrete(NUMBER_CARDS_PER_PLAYER + 1),
         group=GenericCardsContextFeatures,
@@ -43,6 +48,11 @@ USED_FEATURES = [
     FeatureDescription(
         "NUMBER_ROUNDS_ALREADY_WON",
         Discrete(NUMBER_CARDS_PER_PLAYER + 1),
+        group=GenericObjectiveContextFeatures,
+    ),
+    FeatureDescription(
+        "IS_PLAYER_STARTING",
+        Discrete(1),
         group=GenericObjectiveContextFeatures,
     ),
 ]

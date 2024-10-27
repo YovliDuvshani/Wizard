@@ -12,7 +12,7 @@ class BasePredictionPolicy(abc.ABC):
         self._player = player
 
     def _possible_predictions(self) -> list[int]:
-        if self._player.game.ordered_list_players[-1] == self:
+        if self._player.game.ordered_list_players[-1] is self:
             sum_of_already_announced_predictions = sum(
                 self._player.game.state.predictions[player] for player in self._player.game.ordered_list_players[:-1]
             )

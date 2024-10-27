@@ -1,7 +1,7 @@
 from functools import cached_property
 from typing import Optional
 
-from config.common import BASE_COLORS, JESTER_NAME, MAGICIAN_NAME, SUITS
+from config.common import BASE_COLORS, JESTER_NAME, MAGICIAN_NAME, NUMBER_CARDS_PER_COLOR, SUITS
 
 
 class Card:
@@ -25,6 +25,14 @@ class Card:
             number=int(card_representation.split(" ")[0]),
             color=card_representation.split(" ")[1],
         )
+
+    @classmethod
+    def from_id(cls, identifier: int):
+        if identifier == 0:
+            return cls(special_card=MAGICIAN_NAME)
+        elif identifier == 1:
+            return cls(special_card=JESTER_NAME)
+        return cls(color=BASE_COLORS[(identifier - 2) // 13], number=(identifier - 2) % 13 + 1)
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Card):
@@ -65,7 +73,7 @@ class Card:
             return 0
         elif self.special_card == JESTER_NAME:
             return 1
-        return BASE_COLORS.index(self.color) * SUITS.index(self.number) + 2
+        return NUMBER_CARDS_PER_COLOR * BASE_COLORS.index(self.color) + SUITS.index(self.number) + 2
 
 
 class InvalidCard(Exception):
