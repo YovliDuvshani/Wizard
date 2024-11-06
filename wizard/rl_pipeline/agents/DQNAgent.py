@@ -11,6 +11,8 @@ from wizard.rl_pipeline.models.multi_step_ann import MultiStepANN
 
 
 class DQNAgent:
+    NUMBER_GRAD_ACCUMULATION_STEPS = 10
+
     def __init__(self, model: MultiStepANN):
         self._model = model
         self._optimizer = optim.SGD(model.parameters(), lr=ALPHA)
@@ -42,20 +44,16 @@ class DQNAgent:
         else:
             q_next_state = 0
 
-        loss = (GAMMA * q_next_state + reward - q_state).pow(2).mean().pow(0.5)
+        loss = (GAMMA * q_next_state + reward - q_state).pow(2).mean()
         loss.backward()
-        # print(list(self._model.parameters())[0].grad)
-        # self._n_iter += 1
-        # if self._n_iter % 1 == 0:  # TODO: Move to dedicated memory class
-        # nn.utils.clip_grad_norm_(self._model.parameters(), max_norm=1)
-        self._optimizer.step()
-        # print(list(self._model.parameters())[0].grad)
-        # print(f"grad: {self._model.state_dict()}")
-        self._optimizer.zero_grad()
+        self._n_iter += 1
 
-        # print(f"loss: {loss} | reward: {reward} | previous_q: {q_state} | next_q: {self._select_eps_greedy_action(self._model.forward(*state_feat_torch))}")
+        if self._n_iter % self.NUMBER_GRAD_ACCUMULATION_STEPS == 0:  # TODO: Move to dedicated memory class
+            # nn.utils.clip_grad_norm_(self._model.parameters(), max_norm=1)
+            self._optimizer.step()
+            self._optimizer.zero_grad()
 
-        return loss.item()
+        return loss.pow(0.5).item()
 
     def select_action(
         self,

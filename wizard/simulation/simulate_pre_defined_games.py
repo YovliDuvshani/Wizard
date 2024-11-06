@@ -25,7 +25,7 @@ class SimulatePreDefinedGames:
         decks = deepcopy(self._decks)
         for deck in decks:
             game = Game()
-            game.initialize_game(deck=deck, players=self._players, first_player=self._player_starting)
+            game.initialize_game(deck=deck, players=self._players, starting_player=self._player_starting)
             game.request_predictions()
             game.play_game()
             rewards.append(

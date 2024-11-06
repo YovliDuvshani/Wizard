@@ -1,3 +1,4 @@
+import random
 from typing import Any
 
 from gymnasium import Env
@@ -15,14 +16,14 @@ from wizard.rl_pipeline.features.select_learning_features import SelectLearningF
 
 
 class SinglePlayerLearningEnv(Env):
-    def __init__(self, players: list[Player], starting_player: Player, learning_player: Player):
+    def __init__(self, players: list[Player], learning_player: Player, starting_player: Player | None = None):
         self.reward_range = POINT_RANGE
         self.action_space = Discrete(NUMBER_OF_UNIQUE_CARDS)
         self.observation_space = OBSERVATION_SPACE
 
         self._players = players
-        self._starting_player = starting_player
         self._learning_player = learning_player
+        self._starting_player = starting_player
 
         self._game: Game | None = None
 
@@ -51,7 +52,8 @@ class SinglePlayerLearningEnv(Env):
         options: dict[str, Any] | None = None,
     ) -> tuple[OBSERVATION_SPACE, dict[str, Any]]:
         self._game = Game()
-        self._game.initialize_game(deck=Deck(), players=self._players, first_player=self._starting_player)
+        starting_player = self._starting_player if self._starting_player else random.choice(self._players)
+        self._game.initialize_game(deck=Deck(), players=self._players, starting_player=starting_player)
         self._game.request_predictions()
         self._game.get_to_first_state_for_given_player(self._learning_player)
         return (

@@ -30,8 +30,8 @@ class ComputeQValueAllHandCombinationsFirstPlayer:
             game = Game()
             game.initialize_game(
                 deck=deck,
-                players=[self._player] + [RandomPlayer(i) for i in range(1, NUMBER_OF_PLAYERS)],
-                first_player=self._player,
+                players=[RandomPlayer(0)] + [self._player] + [RandomPlayer(i) for i in range(2, NUMBER_OF_PLAYERS)],
+                starting_player=self._player,
             )
             combination_representation = combination[0].representation  # TODO: Generalize to 2+ cards
             q_values[combination_representation] = self._player.agent.q_max(

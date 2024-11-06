@@ -1,3 +1,5 @@
+import os
+import shutil
 import uuid
 from pathlib import Path
 
@@ -10,7 +12,6 @@ from pyinstrument import Profiler
 from torch.utils.tensorboard import SummaryWriter
 
 from config.common import NUMBER_CARDS_PER_PLAYER, NUMBER_OF_PLAYERS
-from project_path import ABS_PATH_PROJECT
 from wizard.base_game.player.card_play_policy import (
     DQNCardPlayPolicy,
     HighestCardPlayPolicy,
@@ -41,57 +42,59 @@ from wizard.simulation.exhaustive.survey_simulation_result import (
 from wizard.simulation.simulate_pre_defined_games import SimulatePreDefinedGames
 
 model = MultiStepANN(
-    card_ann_specification=ANNSpecification(hidden_layers_size=[], output_size=20),
-    hand_ann_specification=ANNSpecification(hidden_layers_size=[], output_size=10),
-    strategy_ann_specification=ANNSpecification(hidden_layers_size=[], output_size=50),
-    q_ann_specification=ANNSpecification(hidden_layers_size=[]),
+    card_ann_specification=ANNSpecification(hidden_layers_size=[500, 500], output_size=30),
+    hand_ann_specification=ANNSpecification(hidden_layers_size=[50, 50], output_size=20),
+    strategy_ann_specification=ANNSpecification(hidden_layers_size=[50, 50], output_size=20),
+    q_ann_specification=ANNSpecification(hidden_layers_size=[50, 50]),
 )
 # model = BaseANN(ANNSpecification(hidden_layers_size=[1000, 1000]))
 
 agent = DQNAgent(model)
 
-players = [
+players = [RandomPlayer(0)] + [
     Player(
-        identifier=0,
+        identifier=1,
         prediction_policy=DefinedPredictionPolicy,
         card_play_policy=DQNCardPlayPolicy,
         agent=agent,
         set_prediction=1,
-        # stat_table=transform_surveyed_df_to_have_predictions_as_index(
-        #     SimulationResultStorage(
-        #         simulation_result_metadata=SimulationResultMetadata(
-        #             simulation_id=195991601809031998,
-        #             learning_player_id=0,
-        #             number_of_players=NUMBER_OF_PLAYERS,
-        #             number_of_cards_per_player=NUMBER_CARDS_PER_PLAYER,
-        #             total_number_trial=1000,
-        #         ),
-        #         simulation_type=SimulationResultType.SURVEY,
-        #     ).read_simulation_result()
-        # ),
+        stat_table=transform_surveyed_df_to_have_predictions_as_index(
+            SimulationResultStorage(
+                simulation_result_metadata=SimulationResultMetadata(
+                    simulation_id=995206032579045575,
+                    learning_player_id=1,
+                    number_of_players=NUMBER_OF_PLAYERS,
+                    number_of_cards_per_player=NUMBER_CARDS_PER_PLAYER,
+                    total_number_trial=1000,
+                ),
+                simulation_type=SimulationResultType.SURVEY,
+            ).read_simulation_result()
+        ),
     )
-] + [RandomPlayer(i) for i in range(1, NUMBER_OF_PLAYERS)]
-players_pre_defined_simulation = [players[0]] + [MaxRandomPlayer(i) for i in range(1, NUMBER_OF_PLAYERS)]
+] + [RandomPlayer(i) for i in range(2, NUMBER_OF_PLAYERS)]
+players_pre_defined_simulation = [MaxRandomPlayer(0)] + [players[1]] + [MaxRandomPlayer(i) for i in range(2, NUMBER_OF_PLAYERS)]
 
-env = SinglePlayerLearningEnv(players=players, starting_player=players[0], learning_player=players[0])
+env = SinglePlayerLearningEnv(players=players, learning_player=players[1]) #, starting_player=players[0])
 
 simulate_pre_defined_games_test_set = SimulatePreDefinedGames(num_games=500)
 simulate_pre_defined_games_test_set.assign_players(
-    players=players_pre_defined_simulation, target_player=players[0], player_starting=players[0]
+    players=players_pre_defined_simulation, target_player=players[1], player_starting=players[1]
 )
 
 simulate_pre_defined_games_val_set = SimulatePreDefinedGames(num_games=500)
 simulate_pre_defined_games_val_set.assign_players(
-    players=players_pre_defined_simulation, target_player=players[0], player_starting=players[0]
+    players=players_pre_defined_simulation, target_player=players[1], player_starting=players[1]
 )
 
 # profiler = Profiler()
 # profiler.start()
 
-NUMBER_OF_EPOCH = 120_000
+NUMBER_OF_EPOCH = 100_000
 
 run_id = uuid.uuid4()
 
+if os.path.exists("../../runs"):
+    shutil.rmtree("../../runs")
 writer = SummaryWriter("../../runs")
 state = env.reset()[0]
 state_tensor = agent._convert_array_to_features(state)
@@ -99,8 +102,8 @@ writer.add_graph(model, state_tensor)
 
 q_values_all_combinations = {}
 rewards_validation_games = {}
+
 rewards_test_games = {}
-losses = []
 for i in range(NUMBER_OF_EPOCH + 1):
     if i % 2000 == 0:
         agent.set_deterministic_action_choice(True)
@@ -108,7 +111,7 @@ for i in range(NUMBER_OF_EPOCH + 1):
         rewards_test_games[i] = simulate_pre_defined_games_test_set.execute()
         agent.set_deterministic_action_choice(False)
         print(f"Iteration {i}")
-        q_values_all_combinations[i] = ComputeQValueAllHandCombinationsFirstPlayer(players[0]).execute()
+        q_values_all_combinations[i] = ComputeQValueAllHandCombinationsFirstPlayer(players[1]).execute()
         # model_path = f"{ABS_PATH_PROJECT}/trained_models/run={run_id}/iteration={i}"
         # Path(model_path).parent.mkdir(parents=True, exist_ok=True)
         # torch.save(model.state_dict(), model_path)
@@ -121,9 +124,8 @@ for i in range(NUMBER_OF_EPOCH + 1):
     state = env.reset()[0]
     while not terminal:
         next_state, reward, terminal, _, _ = env.step(None)
-        if players[0].card_play_policy is DQNCardPlayPolicy or players[0].prediction_policy is DQNPredictionPolicy:
+        if players[1].card_play_policy is DQNCardPlayPolicy or players[1].prediction_policy is DQNPredictionPolicy:
             loss = agent.train(state, next_state, reward)
-            losses.append(loss)
             writer.add_scalar("loss", loss, i)
         state = next_state
 
@@ -144,11 +146,11 @@ challenger_players = {
         card_play_policy=card_play_policy,
         name=name,
         agent=agent,
-        set_prediction=2,
+        set_prediction=1,
         stat_table=transform_surveyed_df_to_have_predictions_as_index(
             SimulationResultStorage(
                 simulation_result_metadata=SimulationResultMetadata(
-                    simulation_id=195991601809031998,
+                    simulation_id=-6459416707303775284,
                     learning_player_id=0,
                     number_of_players=NUMBER_OF_PLAYERS,
                     number_of_cards_per_player=NUMBER_CARDS_PER_PLAYER,
@@ -169,8 +171,6 @@ challenger_players = {
 # profiler.stop()
 # profiler.open_in_browser()
 
-loss_freq_500 = [np.mean(losses[500 * i : 500 * (i + 1)]) for i in range(100)]
-px.line(loss_freq_500).show()
 
 challenger_results = {}
 for name, player in challenger_players.items():

@@ -1,3 +1,3 @@
-ALPHA = 10 ** (-4)
+ALPHA =  10 ** (-5)
 GAMMA = 1
 EPSILON_EXPLORATION_RATE = 0.8

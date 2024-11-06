@@ -17,7 +17,7 @@ from wizard.simulation.exhaustive.survey_simulation_result import SurveySimulati
 NUMBER_TRIALS_EACH_COMBINATION = 1000
 
 players = [DefinedStrategyPlayer(identifier=i) for i in range(NUMBER_OF_PLAYERS)]
-learning_player = players[0]
+learning_player = players[2]
 
 simulator = SimulatorWithOneLearningPlayer(
     players=players,

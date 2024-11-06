@@ -3,7 +3,7 @@ from gymnasium.spaces import Discrete
 from config.common import (
     NUMBER_CARDS_PER_COLOR,
     NUMBER_CARDS_PER_PLAYER,
-    NUMBER_OF_COLORS,
+    NUMBER_OF_COLORS, NUMBER_OF_PLAYERS,
 )
 from wizard.rl_pipeline.features.data_cls import (
     FeatureDescription,
@@ -13,28 +13,28 @@ from wizard.rl_pipeline.features.data_cls import (
 )
 
 USED_FEATURES = [
-    FeatureDescription("IS_PLAYABLE", Discrete(1), group=GenericCardSpecificFeatures),
-    FeatureDescription("IS_TRUMP", Discrete(1), group=GenericCardSpecificFeatures),
-    FeatureDescription("IS_MAGICIAN", Discrete(1), group=GenericCardSpecificFeatures),
-    FeatureDescription("IS_JESTER", Discrete(1), group=GenericCardSpecificFeatures),
+    FeatureDescription("IS_PLAYABLE", Discrete(2), group=GenericCardSpecificFeatures),
+    FeatureDescription("IS_TRUMP", Discrete(2), group=GenericCardSpecificFeatures),
+    FeatureDescription("IS_MAGICIAN", Discrete(2), group=GenericCardSpecificFeatures),
+    FeatureDescription("IS_JESTER", Discrete(2), group=GenericCardSpecificFeatures),
     FeatureDescription("COLOR", Discrete(NUMBER_OF_COLORS + 1), group=GenericCardSpecificFeatures),
     FeatureDescription(
         "NUMBER",
         Discrete(NUMBER_CARDS_PER_COLOR + 1),
         group=GenericCardSpecificFeatures,
     ),
-    FeatureDescription("CAN_WIN_CURRENT_SUB_ROUND", Discrete(1), group=GenericCardSpecificFeatures),
-    FeatureDescription("WILL_WIN_CURRENT_SUB_ROUND", Discrete(1), group=GenericCardSpecificFeatures),
-    FeatureDescription(
-        "NUMBER_SUPERIOR_CARDS_REMAINING_SAME_COLOR",
-        Discrete(NUMBER_CARDS_PER_COLOR + 1),
-        group=GenericCardSpecificFeatures,
-    ),
-    FeatureDescription(
-        "NUMBER_SUPERIOR_CARDS_REMAINING_AMONG_SPECIAL_TRUMP_AND_SAME_COLOR",
-        Discrete(NUMBER_CARDS_PER_COLOR * 2 + 1),
-        group=GenericCardSpecificFeatures,
-    ),
+    # FeatureDescription("CAN_WIN_CURRENT_SUB_ROUND", Discrete(2), group=GenericCardSpecificFeatures),
+    # FeatureDescription("WILL_WIN_CURRENT_SUB_ROUND", Discrete(2), group=GenericCardSpecificFeatures),
+    # FeatureDescription(
+    #     "NUMBER_SUPERIOR_CARDS_REMAINING_SAME_COLOR",
+    #     Discrete(NUMBER_CARDS_PER_COLOR + 1),
+    #     group=GenericCardSpecificFeatures,
+    # ),
+    # FeatureDescription(
+    #     "NUMBER_SUPERIOR_CARDS_REMAINING_AMONG_SPECIAL_TRUMP_AND_SAME_COLOR",
+    #     Discrete(NUMBER_CARDS_PER_COLOR * 2 + 1),
+    #     group=GenericCardSpecificFeatures,
+    # ),
     FeatureDescription(
         "NUMBER_CARDS_REMAINING_IN_PLAYER_HAND",
         Discrete(NUMBER_CARDS_PER_PLAYER + 1),
@@ -52,7 +52,12 @@ USED_FEATURES = [
     ),
     FeatureDescription(
         "IS_PLAYER_STARTING",
-        Discrete(1),
+        Discrete(2),
+        group=GenericObjectiveContextFeatures,
+    ),
+    FeatureDescription(
+        "PLAYER_POSITION",
+        Discrete(NUMBER_OF_PLAYERS),
         group=GenericObjectiveContextFeatures,
     ),
 ]

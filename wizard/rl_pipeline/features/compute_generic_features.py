@@ -127,6 +127,7 @@ class ComputeGenericFeatures:
             ),
             TOTAL_NUMBER_OF_ROUNDS=NUMBER_CARDS_PER_PLAYER,
             IS_PLAYER_STARTING=self._game.next_player_playing is self._player,
+            PLAYER_POSITION=self._game.ordered_list_players.index(self._player),
         )
 
     @cached_property

@@ -44,13 +44,13 @@ class Game:
         self.definition: Optional[GameDefinition] = None
         self.state: Optional[GameState] = None
 
-    def initialize_game(self, deck: Deck, players: List[Player], first_player: Player) -> None:
+    def initialize_game(self, deck: Deck, players: List[Player], starting_player: Player) -> None:
         self._assign_players(players)
         trump_card_removed = self._remove_one_trump_card(deck)
         self._distribute_cards(players=players, deck=deck)
 
         self.definition = GameDefinition(
-            initial_player_starting=first_player,
+            initial_player_starting=starting_player,
             trump_card_removed=trump_card_removed,
             players=players,
             deck=deck,

@@ -47,7 +47,7 @@ players = [
 games_scoring = []
 for _ in range(NUMBER_TRIALS):
     game = Game()
-    game.initialize_game(deck=Deck(), players=players, first_player=players[0])
+    game.initialize_game(deck=Deck(), players=players, starting_player=players[0])
     game.request_predictions()
     game.play_game()
 

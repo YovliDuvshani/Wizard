@@ -64,7 +64,7 @@ class SimulatorWithOneLearningPlayer(Simulator):
                 game.initialize_game(
                     deck=deck,
                     players=self._players,
-                    first_player=self._players[0],
+                    starting_player=self._players[0],
                 )
                 self._simulate_all_outcome_one_round(
                     game=game,

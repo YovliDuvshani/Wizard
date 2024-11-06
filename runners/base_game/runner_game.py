@@ -8,7 +8,7 @@ deck = Deck()
 game = Game(id_game=1)
 game_displayer = GameDisplayer(game)
 
-game.initialize_game(deck=deck, players=players, first_player=players[0])
+game.initialize_game(deck=deck, players=players, starting_player=players[0])
 game_displayer.display_hand_each_player()
 
 game.request_predictions()
