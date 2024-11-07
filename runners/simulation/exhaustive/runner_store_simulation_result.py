@@ -14,12 +14,13 @@ simulation_result_metadata = SimulationResultMetadata(
     total_number_trial=-1,
 )
 
-SimulationResultStorage(
+SimulationResultStorage().save_simulation_result(
+    simulation_result=pd.DataFrame(),
     simulation_result_metadata=simulation_result_metadata,
     simulation_type=SimulationResultType.ALL_OUTCOME,
-).save_simulation_result(pd.DataFrame())
+)
 
-simulation_result = SimulationResultStorage(
+simulation_result = SimulationResultStorage().read_given_simulation_result(
     simulation_result_metadata=simulation_result_metadata,
     simulation_type=SimulationResultType.ALL_OUTCOME,
-).read_simulation_result()
+)

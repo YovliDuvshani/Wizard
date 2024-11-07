@@ -1,6 +1,6 @@
 from copy import deepcopy
 
-from config.common import NUMBER_CARDS_PER_PLAYER, NUMBER_OF_PLAYERS
+from config.common import NUMBER_OF_CARDS_PER_PLAYER, NUMBER_OF_PLAYERS
 from wizard.base_game.deck import Deck
 from wizard.base_game.game import Game
 from wizard.base_game.player.player import DQNPlayer, RandomPlayer
@@ -12,10 +12,10 @@ from wizard.simulation.exhaustive.simulator import CombinationNotImplemented
 
 class ComputeQValueAllHandCombinationsFirstPlayer:
     def __init__(self, player: DQNPlayer, deck: Deck = Deck()):
-        if NUMBER_CARDS_PER_PLAYER not in IMPLEMENTED_COMBINATIONS:
+        if NUMBER_OF_CARDS_PER_PLAYER not in IMPLEMENTED_COMBINATIONS:
             raise CombinationNotImplemented
         self._player = player
-        self._hand_combinations_class = IMPLEMENTED_COMBINATIONS[NUMBER_CARDS_PER_PLAYER]
+        self._hand_combinations_class = IMPLEMENTED_COMBINATIONS[NUMBER_OF_CARDS_PER_PLAYER]
         self._initial_deck = deck
 
     def execute(self):

@@ -2,9 +2,10 @@ import abc
 
 import numpy as np
 
-from config.common import NUMBER_CARDS_PER_PLAYER
+from config.common import NUMBER_OF_CARDS_PER_PLAYER
 from wizard.base_game.list_cards import ListCards
-from wizard.simulation.exhaustive.hand_combinations import HandCombinationsTwoCards
+from wizard.simulation.exhaustive.hand_combinations import HandCombinationsTwoCards, IMPLEMENTED_COMBINATIONS
+from wizard.simulation.exhaustive.simulation_result_storage import SimulationResultStorage
 
 
 class BasePredictionPolicy(abc.ABC):
@@ -16,11 +17,11 @@ class BasePredictionPolicy(abc.ABC):
             sum_of_already_announced_predictions = sum(
                 self._player.game.state.predictions[player] for player in self._player.game.ordered_list_players[:-1]
             )
-            if (forbidden_prediction := NUMBER_CARDS_PER_PLAYER - sum_of_already_announced_predictions) >= 0:
+            if (forbidden_prediction := NUMBER_OF_CARDS_PER_PLAYER - sum_of_already_announced_predictions) >= 0:
                 return list(range(forbidden_prediction)) + list(
-                    range(forbidden_prediction + 1, NUMBER_CARDS_PER_PLAYER + 1)
+                    range(forbidden_prediction + 1, NUMBER_OF_CARDS_PER_PLAYER + 1)
                 )
-        return list(range(NUMBER_CARDS_PER_PLAYER + 1))
+        return list(range(NUMBER_OF_CARDS_PER_PLAYER + 1))
 
     @abc.abstractmethod
     def execute(self) -> int:
@@ -50,10 +51,9 @@ class StatisticalPredictionPolicy(BasePredictionPolicy):
 
     @property
     def _optimal_strategy(self):
-        assert self._player.stat_table is not None, "No stat table provided"
-        return self._player.stat_table.loc[
-            self._player.stat_table[
-                self._player.stat_table.index.get_level_values("tested_combination")
+        return self._adequate_surveyed_simulation_result.loc[
+            self._adequate_surveyed_simulation_result[
+                self._adequate_surveyed_simulation_result.index.get_level_values("tested_combination")
                 == ListCards(self._initial_hand_combination).to_single_representation()
             ].idxmax(),
             :,
@@ -61,7 +61,14 @@ class StatisticalPredictionPolicy(BasePredictionPolicy):
 
     @property
     def _initial_hand_combination(self):
-        return HandCombinationsTwoCards().list_cards_to_hand_combination(self._player.initial_cards)
+        hand_combination_cls = IMPLEMENTED_COMBINATIONS[NUMBER_OF_CARDS_PER_PLAYER]
+        return hand_combination_cls().list_cards_to_hand_combination(self._player.initial_cards)
+
+    @property
+    def _adequate_surveyed_simulation_result(self):
+        return SimulationResultStorage().read_surveyed_simulation_result_based_on_current_configuration(
+            self._player.position
+        )
 
 
 class DQNPredictionPolicy(BasePredictionPolicy):

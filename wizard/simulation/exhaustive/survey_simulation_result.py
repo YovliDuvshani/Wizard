@@ -2,11 +2,10 @@ from typing import Optional
 
 import pandas as pd
 
-from config.common import NUMBER_CARDS_PER_PLAYER
+from config.common import NUMBER_OF_CARDS_PER_PLAYER
 from wizard.base_game.count_points import CountPoints
 from wizard.base_game.list_cards import ListCards
-
-COMBINATION_INDEXES = ["tested_combination", "combination_played_order"]
+from wizard.simulation.exhaustive.constants import COMBINATION_INDEXES
 
 
 class SurveySimulationResult:
@@ -14,7 +13,7 @@ class SurveySimulationResult:
         self,
         simulation_results: pd.DataFrame,
         learning_player_id: int,
-        number_of_cards_per_player: Optional[int] = NUMBER_CARDS_PER_PLAYER,
+        number_of_cards_per_player: Optional[int] = NUMBER_OF_CARDS_PER_PLAYER,
     ):
         self.learning_player_id = learning_player_id
         self.simulation_results = simulation_results
@@ -69,16 +68,3 @@ class SurveySimulationResult:
         return simulation_results.sort_values("tested_combination_in_card_format", ascending=False).drop(
             columns="tested_combination_in_card_format"
         )
-
-
-def transform_surveyed_df_to_have_predictions_as_index(
-    df: pd.DataFrame,
-    number_of_cards_per_player: int = NUMBER_CARDS_PER_PLAYER,
-):
-    return pd.melt(
-        df.rename(columns={f"score_prediction_{i}": i for i in range(number_of_cards_per_player + 1)}),
-        id_vars=COMBINATION_INDEXES,
-        value_vars=range(number_of_cards_per_player + 1),
-        var_name="prediction",
-        value_name="score",
-    ).set_index(COMBINATION_INDEXES + ["prediction"])

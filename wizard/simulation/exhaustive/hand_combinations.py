@@ -32,7 +32,7 @@ class HandCombinationsOneCard(HandCombinations):
 
     @staticmethod
     def list_cards_to_hand_combination(list_cards: List[Card]) -> List[Card]:
-        pass
+        return list_cards
 
 
 class HandCombinationsTwoCards(HandCombinations):

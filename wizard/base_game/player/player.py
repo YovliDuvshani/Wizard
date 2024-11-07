@@ -78,9 +78,15 @@ class Player:
     def select_card_to_play(self) -> Card:
         return self.card_play_policy(self).execute()
 
-    def provide_strategy(self, set_prediction: int | None = None, set_card_play_priority: list[Card] | None = None):
+    def provide_strategy(
+        self, set_prediction: int | None = None, set_card_play_priority: list[Card] | None = None
+    ) -> None:
         self.set_prediction = set_prediction
         self.set_card_play_priority = set_card_play_priority
+
+    @property
+    def position(self) -> int:
+        return self.game.ordered_list_players.index(self)
 
 
 RandomPlayer = partial(

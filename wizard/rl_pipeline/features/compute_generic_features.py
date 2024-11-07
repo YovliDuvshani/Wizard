@@ -5,7 +5,7 @@ from config.common import (
     BASE_COLORS,
     JESTER_NAME,
     MAGICIAN_NAME,
-    NUMBER_CARDS_PER_PLAYER,
+    NUMBER_OF_CARDS_PER_PLAYER,
     TRUMP_COLOR,
 )
 from wizard.base_game.card import Card
@@ -125,7 +125,7 @@ class ComputeGenericFeatures:
                 if self._game.state.predictions[self._player] is not None
                 else 0
             ),
-            TOTAL_NUMBER_OF_ROUNDS=NUMBER_CARDS_PER_PLAYER,
+            TOTAL_NUMBER_OF_ROUNDS=NUMBER_OF_CARDS_PER_PLAYER,
             IS_PLAYER_STARTING=self._game.next_player_playing is self._player,
             PLAYER_POSITION=self._game.ordered_list_players.index(self._player),
         )

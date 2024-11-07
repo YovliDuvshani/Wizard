@@ -66,7 +66,9 @@ class MultiStepANN(torch.nn.Module):
         strategy_ann_input_features = torch.concat((hand_representation, strategy_features))
         strategy_representation = self._strategy_ann(strategy_ann_input_features)
 
-        q_per_card = torch.zeros(NUMBER_OF_UNIQUE_CARDS, dtype=torch.float32) # What happens with Q=0? -> Masking should be handled more elegantly
+        q_per_card = torch.zeros(
+            NUMBER_OF_UNIQUE_CARDS, dtype=torch.float32
+        )  # What happens with Q=0? -> Masking should be handled more elegantly
         for card_id in playable_cards_id:
             q_ann_input_features = torch.concat((strategy_representation, card_embeddings[card_id]))
             q_per_card[card_id] = self._q_ann(q_ann_input_features)

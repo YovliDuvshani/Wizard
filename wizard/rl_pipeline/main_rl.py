@@ -11,7 +11,7 @@ from plotly import express as px
 from pyinstrument import Profiler
 from torch.utils.tensorboard import SummaryWriter
 
-from config.common import NUMBER_CARDS_PER_PLAYER, NUMBER_OF_PLAYERS
+from config.common import NUMBER_OF_CARDS_PER_PLAYER, NUMBER_OF_PLAYERS
 from wizard.base_game.player.card_play_policy import (
     DQNCardPlayPolicy,
     HighestCardPlayPolicy,
@@ -36,9 +36,6 @@ from wizard.simulation.exhaustive.simulation_result_storage import (
     SimulationResultStorage,
     SimulationResultType,
 )
-from wizard.simulation.exhaustive.survey_simulation_result import (
-    transform_surveyed_df_to_have_predictions_as_index,
-)
 from wizard.simulation.simulate_pre_defined_games import SimulatePreDefinedGames
 
 model = MultiStepANN(
@@ -51,30 +48,24 @@ model = MultiStepANN(
 
 agent = DQNAgent(model)
 
-players = [RandomPlayer(0)] + [
-    Player(
-        identifier=1,
-        prediction_policy=DefinedPredictionPolicy,
-        card_play_policy=DQNCardPlayPolicy,
-        agent=agent,
-        set_prediction=1,
-        stat_table=transform_surveyed_df_to_have_predictions_as_index(
-            SimulationResultStorage(
-                simulation_result_metadata=SimulationResultMetadata(
-                    simulation_id=995206032579045575,
-                    learning_player_id=1,
-                    number_of_players=NUMBER_OF_PLAYERS,
-                    number_of_cards_per_player=NUMBER_CARDS_PER_PLAYER,
-                    total_number_trial=1000,
-                ),
-                simulation_type=SimulationResultType.SURVEY,
-            ).read_simulation_result()
-        ),
-    )
-] + [RandomPlayer(i) for i in range(2, NUMBER_OF_PLAYERS)]
-players_pre_defined_simulation = [MaxRandomPlayer(0)] + [players[1]] + [MaxRandomPlayer(i) for i in range(2, NUMBER_OF_PLAYERS)]
+players = (
+    [RandomPlayer(0)]
+    + [
+        Player(
+            identifier=1,
+            prediction_policy=DefinedPredictionPolicy,
+            card_play_policy=DQNCardPlayPolicy,
+            agent=agent,
+            set_prediction=1,
+        )
+    ]
+    + [RandomPlayer(i) for i in range(2, NUMBER_OF_PLAYERS)]
+)
+players_pre_defined_simulation = (
+    [MaxRandomPlayer(0)] + [players[1]] + [MaxRandomPlayer(i) for i in range(2, NUMBER_OF_PLAYERS)]
+)
 
-env = SinglePlayerLearningEnv(players=players, learning_player=players[1]) #, starting_player=players[0])
+env = SinglePlayerLearningEnv(players=players, learning_player=players[1])  # , starting_player=players[0])
 
 simulate_pre_defined_games_test_set = SimulatePreDefinedGames(num_games=500)
 simulate_pre_defined_games_test_set.assign_players(
@@ -97,13 +88,13 @@ if os.path.exists("../../runs"):
     shutil.rmtree("../../runs")
 writer = SummaryWriter("../../runs")
 state = env.reset()[0]
-state_tensor = agent._convert_array_to_features(state)
+state_tensor = agent._convert_array_to_tensor(state)
 writer.add_graph(model, state_tensor)
 
 q_values_all_combinations = {}
 rewards_validation_games = {}
-
 rewards_test_games = {}
+
 for i in range(NUMBER_OF_EPOCH + 1):
     if i % 2000 == 0:
         agent.set_deterministic_action_choice(True)
@@ -126,7 +117,7 @@ for i in range(NUMBER_OF_EPOCH + 1):
         next_state, reward, terminal, _, _ = env.step(None)
         if players[1].card_play_policy is DQNCardPlayPolicy or players[1].prediction_policy is DQNPredictionPolicy:
             loss = agent.train(state, next_state, reward)
-            writer.add_scalar("loss", loss, i)
+            writer.add_scalar("Loss", loss, i)
         state = next_state
 
 writer.close()
@@ -147,18 +138,6 @@ challenger_players = {
         name=name,
         agent=agent,
         set_prediction=1,
-        stat_table=transform_surveyed_df_to_have_predictions_as_index(
-            SimulationResultStorage(
-                simulation_result_metadata=SimulationResultMetadata(
-                    simulation_id=-6459416707303775284,
-                    learning_player_id=0,
-                    number_of_players=NUMBER_OF_PLAYERS,
-                    number_of_cards_per_player=NUMBER_CARDS_PER_PLAYER,
-                    total_number_trial=1000,
-                ),
-                simulation_type=SimulationResultType.SURVEY,
-            ).read_simulation_result()
-        ),
     )
     for name, card_play_policy in [
         ("optimal", StatisticalCardPlayPolicy),

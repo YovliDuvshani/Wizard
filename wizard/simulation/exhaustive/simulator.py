@@ -5,7 +5,7 @@ import itertools
 from copy import deepcopy
 from typing import List, Optional
 
-from config.common import NUMBER_CARDS_PER_PLAYER
+from config.common import NUMBER_OF_CARDS_PER_PLAYER
 from wizard.base_game.card import Card
 from wizard.base_game.deck import Deck
 from wizard.base_game.game import Game
@@ -39,14 +39,14 @@ class SimulatorWithOneLearningPlayer(Simulator):
         initial_deck: Deck,
         number_trial_each_combination: int,
     ):
-        if NUMBER_CARDS_PER_PLAYER not in IMPLEMENTED_COMBINATIONS:
+        if NUMBER_OF_CARDS_PER_PLAYER not in IMPLEMENTED_COMBINATIONS:
             raise CombinationNotImplemented
         if learning_player not in players:
             raise LearningPlayerNotPlaying
         super().__init__(players=players, initial_deck=initial_deck)
         self._learning_player = learning_player
         self._number_trial_each_combination = number_trial_each_combination
-        self._hand_combinations_class = IMPLEMENTED_COMBINATIONS[NUMBER_CARDS_PER_PLAYER]
+        self._hand_combinations_class = IMPLEMENTED_COMBINATIONS[NUMBER_OF_CARDS_PER_PLAYER]
 
     def simulate(self):
         result_logger: List[SimulationResult] = []

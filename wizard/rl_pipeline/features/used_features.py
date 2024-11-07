@@ -2,8 +2,9 @@ from gymnasium.spaces import Discrete
 
 from config.common import (
     NUMBER_CARDS_PER_COLOR,
-    NUMBER_CARDS_PER_PLAYER,
-    NUMBER_OF_COLORS, NUMBER_OF_PLAYERS,
+    NUMBER_OF_CARDS_PER_PLAYER,
+    NUMBER_OF_COLORS,
+    NUMBER_OF_PLAYERS,
 )
 from wizard.rl_pipeline.features.data_cls import (
     FeatureDescription,
@@ -37,17 +38,17 @@ USED_FEATURES = [
     # ),
     FeatureDescription(
         "NUMBER_CARDS_REMAINING_IN_PLAYER_HAND",
-        Discrete(NUMBER_CARDS_PER_PLAYER + 1),
+        Discrete(NUMBER_OF_CARDS_PER_PLAYER + 1),
         group=GenericCardsContextFeatures,
     ),
     FeatureDescription(
         "NUMBER_ROUNDS_TO_WIN",
-        Discrete(NUMBER_CARDS_PER_PLAYER + 1),
+        Discrete(NUMBER_OF_CARDS_PER_PLAYER + 1),
         group=GenericObjectiveContextFeatures,
     ),
     FeatureDescription(
         "NUMBER_ROUNDS_ALREADY_WON",
-        Discrete(NUMBER_CARDS_PER_PLAYER + 1),
+        Discrete(NUMBER_OF_CARDS_PER_PLAYER + 1),
         group=GenericObjectiveContextFeatures,
     ),
     FeatureDescription(

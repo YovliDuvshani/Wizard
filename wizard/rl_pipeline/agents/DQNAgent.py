@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from torch import optim
 
-from config.common import NUMBER_CARDS_PER_PLAYER
+from config.common import NUMBER_OF_CARDS_PER_PLAYER
 from config.rl import ALPHA, EPSILON_EXPLORATION_RATE, GAMMA
 from wizard.base_game.card import Card
 from wizard.rl_pipeline.models.multi_step_ann import MultiStepANN
@@ -33,8 +33,8 @@ class DQNAgent:
         ],
         reward: int,
     ):
-        state_feat_torch = self._convert_array_to_features(state_feat)
-        next_state_feat_torch = self._convert_array_to_features(next_state_feat)
+        state_feat_torch = self._convert_array_to_tensor(state_feat)
+        next_state_feat_torch = self._convert_array_to_tensor(next_state_feat)
 
         _, q_state = self._select_eps_greedy_action(self._model.forward(*state_feat_torch))
         if next_state_feat[0] != {}:
@@ -64,7 +64,7 @@ class DQNAgent:
         ],
     ):
         with torch.no_grad():
-            state_feat_torch = self._convert_array_to_features(state_feat)
+            state_feat_torch = self._convert_array_to_tensor(state_feat)
             if self._deterministic_action_choice:
                 eps_exploration_rate = 0
             else:
@@ -82,8 +82,8 @@ class DQNAgent:
     ):
         q_values = []
         with torch.no_grad():
-            for action in range(NUMBER_CARDS_PER_PLAYER + 1):
-                state_feat_torch = self._convert_array_to_features(state_feat)
+            for action in range(NUMBER_OF_CARDS_PER_PLAYER + 1):
+                state_feat_torch = self._convert_array_to_tensor(state_feat)
                 state_feat_torch[2][0] = action
                 _, q_value = self._select_eps_greedy_action(self._model.forward(*state_feat_torch))
                 q_values.append((action, q_value.item()))
@@ -98,7 +98,7 @@ class DQNAgent:
         ],
     ):
         with torch.no_grad():
-            state_feat_torch = self._convert_array_to_features(state_feat)
+            state_feat_torch = self._convert_array_to_tensor(state_feat)
             _, q_value = self._select_eps_greedy_action(
                 self._model.forward(*state_feat_torch), epsilon_exploration_rate=0
             )
@@ -117,7 +117,7 @@ class DQNAgent:
         return selected_action, q_for_playable_cards[selected_action]
 
     @staticmethod
-    def _convert_array_to_features(
+    def _convert_array_to_tensor(
         state_feat: tuple[
             dict[str, np.ndarray],
             np.ndarray,

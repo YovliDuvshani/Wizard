@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from random import choice
 from typing import Dict, List, Optional
 
-from config.common import NUMBER_CARDS_PER_PLAYER, NUMBER_OF_PLAYERS, TRUMP_COLOR
+from config.common import NUMBER_OF_CARDS_PER_PLAYER, NUMBER_OF_PLAYERS, TRUMP_COLOR
 from wizard.base_game.card import Card
 from wizard.base_game.count_points import CountPoints
 from wizard.base_game.deck import Deck
@@ -97,15 +97,15 @@ class Game:
     def _distribute_cards(players: List[Player], deck: Deck) -> None:
         assert players is not None, "No players"
         assert deck is not None, "Deck of cards is missing"
-        assert NUMBER_CARDS_PER_PLAYER * NUMBER_OF_PLAYERS < len(deck.cards), "Not enough cards"
+        assert NUMBER_OF_CARDS_PER_PLAYER * NUMBER_OF_PLAYERS < len(deck.cards), "Not enough cards"
 
         # deck.remove_cards(cards_to_remove=[Card.from_representation("1 RED")])
         # players[0].receive_cards([Card.from_representation("1 RED")])
 
         for player in players:
-            player_has_received_cards = player.receive_cards(deck.cards[0:NUMBER_CARDS_PER_PLAYER])
+            player_has_received_cards = player.receive_cards(deck.cards[0:NUMBER_OF_CARDS_PER_PLAYER])
             if player_has_received_cards:
-                deck.cards = deck.cards[NUMBER_CARDS_PER_PLAYER:]
+                deck.cards = deck.cards[NUMBER_OF_CARDS_PER_PLAYER:]
 
     def _initialize_game_state(self) -> None:
         self.state = GameState(
@@ -138,7 +138,7 @@ class Game:
 
         if len(self.state.round_specifics.turn_history) == len(self.definition.players):
             self._complete_round(print_results)
-            if len(self.state.previous_turns_history) == NUMBER_CARDS_PER_PLAYER:
+            if len(self.state.previous_turns_history) == NUMBER_OF_CARDS_PER_PLAYER:
                 return True
         return False
 
