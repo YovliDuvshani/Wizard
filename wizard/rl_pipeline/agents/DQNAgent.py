@@ -7,37 +7,31 @@ from torch import optim
 from config.common import NUMBER_OF_CARDS_PER_PLAYER
 from config.rl import ALPHA, EPSILON_EXPLORATION_RATE, GAMMA
 from wizard.base_game.card import Card
+from wizard.rl_pipeline.features.data_cls import GenericFeatures
+from wizard.rl_pipeline.features.select_learning_features import SelectLearningFeatures
 from wizard.rl_pipeline.models.multi_step_ann import MultiStepANN
 
 
 class DQNAgent:
-    NUMBER_GRAD_ACCUMULATION_STEPS = 10
+    NUMBER_GRAD_ACCUMULATION_STEPS = 100
 
     def __init__(self, model: MultiStepANN):
         self.model = model
-        self._optimizer = optim.SGD(model.parameters(), lr=ALPHA)
+        self._optimizer = optim.Adam(model.parameters(), lr=ALPHA)
         self._deterministic_action_choice = False
         self._n_iter = 0
 
     def train(
         self,
-        state_feat: tuple[
-            dict[str, np.ndarray],
-            np.ndarray,
-            np.ndarray,
-        ],
-        next_state_feat: tuple[
-            dict[str, np.ndarray],
-            np.ndarray,
-            np.ndarray,
-        ],
+        state: GenericFeatures,
+        next_state: GenericFeatures,
         reward: int,
     ):
-        state_feat_torch = self.convert_array_to_tensor(state_feat)
-        next_state_feat_torch = self.convert_array_to_tensor(next_state_feat)
+        state_feat_torch = self.convert_array_to_tensor(SelectLearningFeatures().execute(state))
+        next_state_feat_torch = self.convert_array_to_tensor(SelectLearningFeatures().execute(next_state))
 
         _, q_state = self._select_eps_greedy_action(self.model.forward(*state_feat_torch))
-        if next_state_feat[0] != {}:
+        if not next_state.generic_objective_context.IS_TERMINAL:
             _, q_next_state = self._select_eps_greedy_action(
                 self.model.forward(*next_state_feat_torch), epsilon_exploration_rate=0
             )
@@ -55,16 +49,9 @@ class DQNAgent:
 
         return loss.pow(0.5).item()
 
-    def select_action(
-        self,
-        state_feat: tuple[
-            dict[str, np.ndarray],
-            np.ndarray,
-            np.ndarray,
-        ],
-    ):
+    def select_action(self, state_feat: GenericFeatures):
         with torch.no_grad():
-            state_feat_torch = self.convert_array_to_tensor(state_feat)
+            state_feat_torch = self.convert_array_to_tensor(SelectLearningFeatures().execute(state_feat))
             if self._deterministic_action_choice:
                 eps_exploration_rate = 0
             else:
@@ -72,33 +59,19 @@ class DQNAgent:
             action, _ = self._select_eps_greedy_action(self.model.forward(*state_feat_torch), eps_exploration_rate)
             return Card.from_id(action.item()).representation
 
-    def get_highest_rewards_predictions(
-        self,
-        state_feat: tuple[
-            dict[str, np.ndarray],
-            np.ndarray,
-            np.ndarray,
-        ],
-    ):
+    def get_highest_rewards_predictions(self, state: GenericFeatures):
         q_values = []
         with torch.no_grad():
             for action in range(NUMBER_OF_CARDS_PER_PLAYER + 1):
-                state_feat_torch = self.convert_array_to_tensor(state_feat)
+                state_feat_torch = self.convert_array_to_tensor(SelectLearningFeatures().execute(state))
                 state_feat_torch[2][0] = action
                 _, q_value = self._select_eps_greedy_action(self.model.forward(*state_feat_torch))
                 q_values.append((action, q_value.item()))
         return [action for action, _ in sorted(q_values, key=lambda ele: ele[1])[:2]]
 
-    def q_max(
-        self,
-        state_feat: tuple[
-            dict[str, np.ndarray],
-            np.ndarray,
-            np.ndarray,
-        ],
-    ):
+    def q_max(self, state: GenericFeatures):
         with torch.no_grad():
-            state_feat_torch = self.convert_array_to_tensor(state_feat)
+            state_feat_torch = self.convert_array_to_tensor(SelectLearningFeatures().execute(state))
             _, q_value = self._select_eps_greedy_action(
                 self.model.forward(*state_feat_torch), epsilon_exploration_rate=0
             )

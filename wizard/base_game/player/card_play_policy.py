@@ -114,8 +114,5 @@ class DQNCardPlayPolicy(BaseCardPlayPolicy):
         from wizard.rl_pipeline.features.compute_generic_features import (
             ComputeGenericFeatures,
         )
-        from wizard.rl_pipeline.features.select_learning_features import (
-            SelectLearningFeatures,
-        )
 
-        return SelectLearningFeatures().execute(ComputeGenericFeatures(self._player.game, self._player).execute())
+        return ComputeGenericFeatures(self._player.game, self._player).execute()

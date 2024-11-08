@@ -24,18 +24,18 @@ USED_FEATURES = [
         Discrete(NUMBER_CARDS_PER_COLOR + 1),
         group=GenericCardSpecificFeatures,
     ),
-    # FeatureDescription("CAN_WIN_CURRENT_SUB_ROUND", Discrete(2), group=GenericCardSpecificFeatures),
-    # FeatureDescription("WILL_WIN_CURRENT_SUB_ROUND", Discrete(2), group=GenericCardSpecificFeatures),
-    # FeatureDescription(
-    #     "NUMBER_SUPERIOR_CARDS_REMAINING_SAME_COLOR",
-    #     Discrete(NUMBER_CARDS_PER_COLOR + 1),
-    #     group=GenericCardSpecificFeatures,
-    # ),
-    # FeatureDescription(
-    #     "NUMBER_SUPERIOR_CARDS_REMAINING_AMONG_SPECIAL_TRUMP_AND_SAME_COLOR",
-    #     Discrete(NUMBER_CARDS_PER_COLOR * 2 + 1),
-    #     group=GenericCardSpecificFeatures,
-    # ),
+    FeatureDescription("CAN_WIN_CURRENT_SUB_ROUND", Discrete(2), group=GenericCardSpecificFeatures),
+    FeatureDescription("WILL_WIN_CURRENT_SUB_ROUND", Discrete(2), group=GenericCardSpecificFeatures),
+    FeatureDescription(
+        "NUMBER_SUPERIOR_CARDS_REMAINING_SAME_COLOR",
+        Discrete(NUMBER_CARDS_PER_COLOR + 1),
+        group=GenericCardSpecificFeatures,
+    ),
+    FeatureDescription(
+        "NUMBER_SUPERIOR_CARDS_REMAINING_AMONG_SPECIAL_TRUMP_AND_SAME_COLOR",
+        Discrete(NUMBER_CARDS_PER_COLOR * 2 + 1),
+        group=GenericCardSpecificFeatures,
+    ),
     FeatureDescription(
         "NUMBER_CARDS_REMAINING_IN_PLAYER_HAND",
         Discrete(NUMBER_OF_CARDS_PER_PLAYER + 1),
@@ -59,6 +59,11 @@ USED_FEATURES = [
     FeatureDescription(
         "PLAYER_POSITION",
         Discrete(NUMBER_OF_PLAYERS),
+        group=GenericObjectiveContextFeatures,
+    ),
+    FeatureDescription(
+        "IS_TERMINAL",
+        Discrete(2),
         group=GenericObjectiveContextFeatures,
     ),
 ]

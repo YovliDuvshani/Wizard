@@ -19,8 +19,6 @@ from wizard.rl_pipeline.features.data_cls import (
     GenericObjectiveContextFeatures,
 )
 
-# TODO: Normalize the features
-
 
 class ComputeGenericFeatures:
     def __init__(self, game: Game, player: Player):
@@ -128,6 +126,7 @@ class ComputeGenericFeatures:
             TOTAL_NUMBER_OF_ROUNDS=NUMBER_OF_CARDS_PER_PLAYER,
             IS_PLAYER_STARTING=self._game.next_player_playing is self._player,
             PLAYER_POSITION=self._game.ordered_list_players.index(self._player),
+            IS_TERMINAL=not self._player.cards,
         )
 
     @cached_property

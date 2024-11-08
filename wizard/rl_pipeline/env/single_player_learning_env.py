@@ -1,4 +1,3 @@
-import random
 from typing import Any
 
 from gymnasium import Env
@@ -12,7 +11,6 @@ from wizard.base_game.game import Game, Terminal
 from wizard.base_game.player.player import Player
 from wizard.rl_pipeline.features.compute_generic_features import ComputeGenericFeatures
 from wizard.rl_pipeline.features.observation_space import OBSERVATION_SPACE
-from wizard.rl_pipeline.features.select_learning_features import SelectLearningFeatures
 
 
 class SinglePlayerLearningEnv(Env):
@@ -31,7 +29,7 @@ class SinglePlayerLearningEnv(Env):
         terminal = self._game.get_to_next_afterstate_for_given_player(self._learning_player)
         reward = self._get_reward(terminal)
         return (
-            SelectLearningFeatures().execute(ComputeGenericFeatures(self._game, self._learning_player).execute()),
+            ComputeGenericFeatures(self._game, self._learning_player).execute(),
             reward,
             terminal,
             False,
@@ -58,7 +56,7 @@ class SinglePlayerLearningEnv(Env):
         self._game.request_predictions()
         self._game.get_to_first_state_for_given_player(self._learning_player)
         return (
-            SelectLearningFeatures().execute(ComputeGenericFeatures(self._game, self._learning_player).execute()),
+            ComputeGenericFeatures(self._game, self._learning_player).execute(),
             {},
         )
 

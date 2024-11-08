@@ -41,6 +41,7 @@ class GenericObjectiveContextFeatures:
     TOTAL_NUMBER_OF_ROUNDS: int
     IS_PLAYER_STARTING: int
     PLAYER_POSITION: int
+    IS_TERMINAL: bool
 
 
 @dataclass
