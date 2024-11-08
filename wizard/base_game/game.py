@@ -1,4 +1,5 @@
 # mypy: disable-error-code="union-attr"
+import random
 from dataclasses import dataclass
 from random import choice
 from typing import Dict, List, Optional
@@ -44,10 +45,14 @@ class Game:
         self.definition: Optional[GameDefinition] = None
         self.state: Optional[GameState] = None
 
-    def initialize_game(self, deck: Deck, players: List[Player], starting_player: Player) -> None:
+    def initialize_game(
+        self, deck: Deck, players: List[Player], starting_player: Player | None = None, deterministic: bool = False
+    ) -> None:
         self._assign_players(players)
-        trump_card_removed = self._remove_one_trump_card(deck)
+        trump_card_removed = self._remove_one_trump_card(deck, deterministic)
         self._distribute_cards(players=players, deck=deck)
+
+        starting_player = starting_player if starting_player else random.choice(players)
 
         self.definition = GameDefinition(
             initial_player_starting=starting_player,
@@ -86,9 +91,9 @@ class Game:
             player.assign_game(self)
 
     @staticmethod
-    def _remove_one_trump_card(deck: Deck) -> Card:  # type: ignore
+    def _remove_one_trump_card(deck: Deck, deterministic: bool) -> Card:  # type: ignore
         remaining_trump_cards = [card for card in deck.cards if card.color == TRUMP_COLOR]
-        trump_card_to_remove = choice(remaining_trump_cards)
+        trump_card_to_remove = remaining_trump_cards[-1] if deterministic else choice(remaining_trump_cards)
         index_trump_card_to_remove = deck.cards.index(trump_card_to_remove)
         deck.cards = deck.cards[:index_trump_card_to_remove] + deck.cards[index_trump_card_to_remove + 1 :]
         return trump_card_to_remove
@@ -98,9 +103,6 @@ class Game:
         assert players is not None, "No players"
         assert deck is not None, "Deck of cards is missing"
         assert NUMBER_OF_CARDS_PER_PLAYER * NUMBER_OF_PLAYERS < len(deck.cards), "Not enough cards"
-
-        # deck.remove_cards(cards_to_remove=[Card.from_representation("1 RED")])
-        # players[0].receive_cards([Card.from_representation("1 RED")])
 
         for player in players:
             player_has_received_cards = player.receive_cards(deck.cards[0:NUMBER_OF_CARDS_PER_PLAYER])

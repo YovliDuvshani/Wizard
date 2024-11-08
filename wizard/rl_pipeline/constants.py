@@ -1,0 +1,3 @@
+from project_path import ABS_PATH_PROJECT
+
+TENSORBOARD_OUTPUT_DIRECTORY = f"{ABS_PATH_PROJECT}/runs/"

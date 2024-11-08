@@ -52,8 +52,9 @@ class SinglePlayerLearningEnv(Env):
         options: dict[str, Any] | None = None,
     ) -> tuple[OBSERVATION_SPACE, dict[str, Any]]:
         self._game = Game()
-        starting_player = self._starting_player if self._starting_player else random.choice(self._players)
-        self._game.initialize_game(deck=Deck(), players=self._players, starting_player=starting_player)
+        for player in self._players:  # Safety mechanism in case of multiple consecutive reset calls
+            player.drop_hand()
+        self._game.initialize_game(deck=Deck(), players=self._players, starting_player=self._starting_player)
         self._game.request_predictions()
         self._game.get_to_first_state_for_given_player(self._learning_player)
         return (
