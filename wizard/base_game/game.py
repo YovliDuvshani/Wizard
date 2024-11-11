@@ -50,6 +50,7 @@ class Game:
     ) -> None:
         self._assign_players(players)
         trump_card_removed = self._remove_one_trump_card(deck, deterministic)
+
         self._distribute_cards(players=players, deck=deck)
 
         starting_player = starting_player if starting_player else random.choice(players)
@@ -71,20 +72,34 @@ class Game:
         while not terminal:
             terminal = self._play_next_card(print_results=print_results)
 
-    def get_to_first_state_for_given_player(self, player: Player):
+    def get_to_prediction_state_for_given_player(self, player: Player):
+        for next_player_predicting in self.ordered_list_players:
+            if next_player_predicting is player:
+                break
+            self.set_prediction_for_given_player(next_player_predicting)
+
+    def set_prediction_for_given_player(self, player: Player, prediction: int | None = None):
+        self.state.predictions[player] = prediction if prediction is not None else player.make_prediction()
+
+    def get_to_first_play_afterstate_for_given_player(self, player: Player) -> Terminal:
+        for next_player_predicting in self.ordered_list_players[self.ordered_list_players.index(player) + 1:]:
+            self.state.predictions[next_player_predicting] = next_player_predicting.make_prediction()
         while self.next_player_playing != player:
             self._play_next_card(print_results=False)
+        return False
 
-    def get_to_next_afterstate_for_given_player(self, player: Player, print_results: bool = False) -> Terminal:
+    def get_to_next_play_afterstate_for_given_player(
+        self, player: Player, action: str | None = None, print_results: bool = False
+    ) -> Terminal:
         assert self.next_player_playing == player, "Learning player should have been playing"
 
-        no_card_was_played = True
-        while self.next_player_playing != player or no_card_was_played:
-            terminal = self._play_next_card(print_results)
-            no_card_was_played = False
-            if terminal:
-                return True
-        return False
+        if action:
+            action = Card.from_representation(action)
+
+        terminal = self._play_next_card(action, print_results)
+        while (self.next_player_playing != player) & (not terminal):
+            terminal = self._play_next_card(print_results=print_results)
+        return terminal
 
     def _assign_players(self, players: List[Player]) -> None:
         for player in players:
@@ -123,9 +138,9 @@ class Game:
             ),
         )
 
-    def _play_next_card(self, print_results: bool) -> Terminal:
+    def _play_next_card(self, card: Card | None = None, print_results: bool = False) -> Terminal:
         player = self.next_player_playing
-        card = player.play_card()
+        card = player.play_card(card_to_play=card)
         if card.color and not self.state.round_specifics.starting_color:
             self.state.round_specifics.starting_color = card.color
         self.state.round_specifics.turn_history += [

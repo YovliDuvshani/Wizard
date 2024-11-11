@@ -26,7 +26,11 @@ class SinglePlayerLearningEnv(Env):
         self._game: Game | None = None
 
     def step(self, action: ActType) -> tuple[OBSERVATION_SPACE, int, bool, bool, dict[str, Any]]:
-        terminal = self._game.get_to_next_afterstate_for_given_player(self._learning_player)
+        if isinstance(action, int):
+            self._game.set_prediction_for_given_player(self._learning_player, action)
+            terminal = self._game.get_to_first_play_afterstate_for_given_player(self._learning_player)
+        else:
+            terminal = self._game.get_to_next_play_afterstate_for_given_player(self._learning_player, action)
         reward = self._get_reward(terminal)
         return (
             ComputeGenericFeatures(self._game, self._learning_player).execute(),
@@ -53,8 +57,7 @@ class SinglePlayerLearningEnv(Env):
         for player in self._players:  # Safety mechanism in case of multiple consecutive reset calls
             player.drop_hand()
         self._game.initialize_game(deck=Deck(), players=self._players, starting_player=self._starting_player)
-        self._game.request_predictions()
-        self._game.get_to_first_state_for_given_player(self._learning_player)
+        self._game.get_to_prediction_state_for_given_player(self._learning_player)
         return (
             ComputeGenericFeatures(self._game, self._learning_player).execute(),
             {},

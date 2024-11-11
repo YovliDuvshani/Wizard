@@ -33,7 +33,7 @@ class Deck:
 
         return list_cards
 
-    def filter_deck(self, colors: list[str], keep_joker: bool, keep_joker_duplicates: bool):
+    def filter_deck(self, colors: list[str], keep_joker: bool = True, keep_joker_duplicates: bool = True) -> list[Card]:
         filtered_cards: list[Card] = []
         joker_already_added: list[str] = []
         for card in self.cards:
@@ -51,7 +51,7 @@ class Deck:
     def shuffle(self) -> None:
         np.random.shuffle(self.cards)
 
-    def remove_cards(self, cards_to_remove: List[Card]):
+    def remove_cards(self, cards_to_remove: List[Card]) -> None:
         for card_to_remove in cards_to_remove:
             for card in self.cards:
                 if card == card_to_remove:

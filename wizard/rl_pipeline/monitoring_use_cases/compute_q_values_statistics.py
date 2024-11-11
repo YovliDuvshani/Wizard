@@ -28,10 +28,14 @@ class QValuesPlotDefinition:
     facet_row: str | None = None
     facet_col: str | None = None
     sorting_cols: list[str] | None = None
+    filtering_with_name: tuple[str, Callable[[pd.DataFrame], pd.DataFrame]] | None = None
 
     @property
     def name(self):
-        return f"{self.plot_func.__name__}_f({self.x})={self.y}_with_color_{self.color}_per_{self.facet_row}"
+        return (
+            f"{self.plot_func.__name__}_f({self.x})={self.y}_with_color_{self.color}_per_{self.facet_row}"
+            f"_with_filtering_{self.filtering_with_name[0]}"
+        )
 
 
 Q_VALUES_PLOT_DEFINITIONS = [
@@ -39,10 +43,35 @@ Q_VALUES_PLOT_DEFINITIONS = [
         plot_func=px.scatter,
         x="FIRST_CARD_REPRESENTATION",
         y="Q_VALUES",
+        facet_col="NUMBER_ROUNDS_TO_WIN",
+        facet_row="PLAYER_POSITION",
+        sorting_cols=["FIRST_CARD"],
+        filtering_with_name=("only_prediction_step", lambda df: df[df["IS_PREDICTION_STEP"] == 1]),
+    ),
+    QValuesPlotDefinition(
+        plot_func=px.scatter,
+        x="FIRST_CARD_REPRESENTATION",
+        y="Q_VALUES",
         facet_row="PLAYER_POSITION",
         facet_col="CAN_WIN_CURRENT_SUB_ROUND",
         sorting_cols=["FIRST_CARD"],
-    )
+        filtering_with_name=(
+            "prediction=0",
+            lambda df: df[(df["IS_PREDICTION_STEP"] == -1) & (df["NUMBER_ROUNDS_TO_WIN"] == 0)],
+        ),
+    ),
+    QValuesPlotDefinition(
+        plot_func=px.scatter,
+        x="FIRST_CARD_REPRESENTATION",
+        y="Q_VALUES",
+        facet_row="PLAYER_POSITION",
+        facet_col="CAN_WIN_CURRENT_SUB_ROUND",
+        sorting_cols=["FIRST_CARD"],
+        filtering_with_name=(
+            "prediction=1",
+            lambda df: df[(df["IS_PREDICTION_STEP"] == -1) & (df["NUMBER_ROUNDS_TO_WIN"] == 1)],
+        ),
+    ),
 ]
 
 
@@ -67,9 +96,13 @@ class ComputeQValuesStatistics(MonitoringUseCase):
             terminal = False
             state = self._env.reset()[0]
             while not terminal:
+                action = self._agent.select_action(state)
+                state = self._agent.update_state_to_action_state_for_prediction_phase(state, action)
+
                 states.append(state)
                 q_values.append(self._agent.q_max(state))
-                next_state, reward, terminal, _, _ = self._env.step(None)
+
+                next_state, reward, terminal, _, _ = self._env.step(action)
                 state = next_state
 
         feature_df_with_q = self._build_feature_df_with_q(states, q_values)
@@ -108,6 +141,9 @@ class ComputeQValuesStatistics(MonitoringUseCase):
             "width": BASE_WIDTH,
             "height": BASE_HEIGHT,
         }
+        if plot_def.filtering_with_name is not None:
+            feature_df_with_q = feature_df_with_q.copy()
+            feature_df_with_q = plot_def.filtering_with_name[1](feature_df_with_q)
         if plot_def.sorting_cols:
             feature_df_with_q = feature_df_with_q.sort_values(plot_def.sorting_cols)
         return plot_def.plot_func(feature_df_with_q, **kwargs)

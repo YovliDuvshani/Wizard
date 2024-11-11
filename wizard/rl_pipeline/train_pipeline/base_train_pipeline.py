@@ -21,12 +21,15 @@ class BaseTrainPipeline:
             terminal = False
             state = self._env.reset()[0]
             while not terminal:
-                next_state, reward, terminal, _, _ = self._env.step(None)
-                loss = self._agent.train(state, next_state, reward)
+                action = self._agent.select_action(state)
+                next_state, reward, terminal, _, _ = self._env.step(action)
+                loss = self._agent.train(state, action, next_state, reward)
                 state = next_state
             self._run_monitoring_use_cases(epoch, loss, reward)
 
     def _run_monitoring_use_cases(self, epoch: int, loss: float, reward: float):
+        self._agent.set_deterministic_behavior(True)
         for monitoring_use_case in self._monitoring_use_cases:
             if epoch % monitoring_use_case.frequency == 0:
                 monitoring_use_case.execute(epoch=epoch, loss=loss, reward=reward)
+        self._agent.set_deterministic_behavior(False)

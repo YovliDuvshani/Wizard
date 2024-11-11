@@ -116,7 +116,7 @@ class ComputeGenericFeatures:
             NUMBER_ROUNDS_TO_WIN=(
                 self._game.state.predictions[self._player]
                 if self._game.state.predictions[self._player] is not None
-                else 0
+                else -1
             ),
             NUMBER_ROUNDS_ALREADY_WON=(
                 self._game.state.number_of_turns_won[self._player]
@@ -127,6 +127,14 @@ class ComputeGenericFeatures:
             IS_PLAYER_STARTING=self._game.next_player_playing is self._player,
             PLAYER_POSITION=self._game.ordered_list_players.index(self._player),
             IS_TERMINAL=not self._player.cards,
+            IS_PREDICTION_STEP=(
+                1 if any([prediction is None for prediction in self._game.state.predictions.values()]) else -1
+            ),
+            FORBIDDEN_PREDICTION=(
+                self._player.prediction_policy(self._player).forbidden_prediction()
+                if self._player.prediction_policy(self._player).forbidden_prediction() is not None
+                else -1
+            ),
         )
 
     @cached_property

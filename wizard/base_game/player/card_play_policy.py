@@ -1,4 +1,5 @@
 import abc
+from functools import lru_cache
 
 import numpy as np
 
@@ -83,9 +84,10 @@ class StatisticalCardPlayPolicy(BaseCardPlayPolicy):
 
     @property
     def _optimal_strategy(self):
-        return self._adequate_surveyed_simulation_result.loc[
-            self._adequate_surveyed_simulation_result[
-                self._adequate_surveyed_simulation_result.index.get_level_values("tested_combination")
+        df = self._adequate_surveyed_simulation_result(self._player.position)
+        return df.loc[
+            df[
+                df.index.get_level_values("tested_combination")
                 == ListCards(self._initial_hand_combination).to_single_representation()
             ].idxmax(),
             :,
@@ -96,11 +98,9 @@ class StatisticalCardPlayPolicy(BaseCardPlayPolicy):
         hand_combination_cls = IMPLEMENTED_COMBINATIONS[NUMBER_OF_CARDS_PER_PLAYER]
         return hand_combination_cls().list_cards_to_hand_combination(self._player.initial_cards)
 
-    @property
-    def _adequate_surveyed_simulation_result(self):
-        return SimulationResultStorage().read_surveyed_simulation_result_based_on_current_configuration(
-            self._player.position
-        )
+    @lru_cache
+    def _adequate_surveyed_simulation_result(self, player_position: int):
+        return SimulationResultStorage().read_surveyed_simulation_result_based_on_current_configuration(player_position)
 
 
 class DQNCardPlayPolicy(BaseCardPlayPolicy):

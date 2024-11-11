@@ -1,11 +1,12 @@
 import random
+from copy import deepcopy
 
 import numpy as np
 import torch
 from torch import optim
 
 from config.common import NUMBER_OF_CARDS_PER_PLAYER
-from config.rl import ALPHA, EPSILON_EXPLORATION_RATE, GAMMA
+from config.rl import ALPHA, EPSILON_EXPLORATION_RATE_CARD_PLAY, GAMMA, EPSILON_EXPLORATION_RATE_PREDICTIONS
 from wizard.base_game.card import Card
 from wizard.rl_pipeline.features.data_cls import GenericFeatures
 from wizard.rl_pipeline.features.select_learning_features import SelectLearningFeatures
@@ -18,56 +19,80 @@ class DQNAgent:
     def __init__(self, model: MultiStepANN):
         self.model = model
         self._optimizer = optim.Adam(model.parameters(), lr=ALPHA)
-        self._deterministic_action_choice = False
+        self._deterministic_behavior = False
         self._n_iter = 0
 
     def train(
         self,
         state: GenericFeatures,
+        action: int | str,
         next_state: GenericFeatures,
         reward: int,
     ):
+        state = self.update_state_to_action_state_for_prediction_phase(state, action)
+
         state_feat_torch = self.convert_array_to_tensor(SelectLearningFeatures().execute(state))
         next_state_feat_torch = self.convert_array_to_tensor(SelectLearningFeatures().execute(next_state))
 
-        _, q_state = self._select_eps_greedy_action(self.model.forward(*state_feat_torch))
-        if not next_state.generic_objective_context.IS_TERMINAL:
-            _, q_next_state = self._select_eps_greedy_action(
-                self.model.forward(*next_state_feat_torch), epsilon_exploration_rate=0
+        if isinstance(action, str):
+            q_state = self.model.forward(*state_feat_torch)[Card.from_representation(action).id]
+        elif isinstance(action, int):
+            _, q_state = self._select_eps_greedy_action(
+                self.model.forward(*state_feat_torch), epsilon_exploration_rate=0
             )
-        else:
-            q_next_state = 0
 
-        loss = (GAMMA * q_next_state + reward - q_state).pow(2).mean()
+        with torch.no_grad():
+            if not next_state.generic_objective_context.IS_TERMINAL:
+                _, q_next_state = self._select_eps_greedy_action(
+                    self.model.forward(*next_state_feat_torch), epsilon_exploration_rate=0
+                )
+            else:
+                q_next_state = torch.tensor(0, dtype=torch.float32)
+
+        loss = (GAMMA * q_next_state + reward - q_state).pow(2).mean() / self.NUMBER_GRAD_ACCUMULATION_STEPS
         loss.backward()
         self._n_iter += 1
 
-        if self._n_iter % self.NUMBER_GRAD_ACCUMULATION_STEPS == 0:  # TODO: Move to dedicated memory class
-            # nn.utils.clip_grad_norm_(self._model.parameters(), max_norm=1)
+        if self._n_iter % self.NUMBER_GRAD_ACCUMULATION_STEPS == 0:
             self._optimizer.step()
             self._optimizer.zero_grad()
 
-        return loss.pow(0.5).item()
+        return (loss * self.NUMBER_GRAD_ACCUMULATION_STEPS).pow(0.5).item()
 
-    def select_action(self, state_feat: GenericFeatures):
+    @staticmethod
+    def update_state_to_action_state_for_prediction_phase(state: GenericFeatures, action: int | str):
+        if isinstance(action, int):
+            state = deepcopy(state)
+            state.generic_objective_context.NUMBER_ROUNDS_TO_WIN = action
+        return state
+
+    def select_action(self, state: GenericFeatures) -> str | int:
+        if state.generic_objective_context.IS_PREDICTION_STEP == 1:
+            return (
+                self.get_predictions_sorted_by_q(state)[0]
+                if self.get_predictions_sorted_by_q(state)[0] != state.generic_objective_context.FORBIDDEN_PREDICTION
+                else self.get_predictions_sorted_by_q(state)[1]
+            )
         with torch.no_grad():
-            state_feat_torch = self.convert_array_to_tensor(SelectLearningFeatures().execute(state_feat))
-            if self._deterministic_action_choice:
-                eps_exploration_rate = 0
-            else:
-                eps_exploration_rate = EPSILON_EXPLORATION_RATE
-            action, _ = self._select_eps_greedy_action(self.model.forward(*state_feat_torch), eps_exploration_rate)
+            state_feat_torch = self.convert_array_to_tensor(SelectLearningFeatures().execute(state))
+            action, _ = self._select_eps_greedy_action(self.model.forward(*state_feat_torch))
             return Card.from_id(action.item()).representation
 
-    def get_highest_rewards_predictions(self, state: GenericFeatures):
+    def get_predictions_sorted_by_q(self, state: GenericFeatures) -> list[int]:
         q_values = []
+        if not self._deterministic_behavior and random.random() < EPSILON_EXPLORATION_RATE_PREDICTIONS:
+            all_actions = list(range(NUMBER_OF_CARDS_PER_PLAYER + 1))
+            random.shuffle(all_actions)
+            return all_actions
         with torch.no_grad():
             for action in range(NUMBER_OF_CARDS_PER_PLAYER + 1):
+                state.generic_objective_context.NUMBER_ROUNDS_TO_WIN = action
                 state_feat_torch = self.convert_array_to_tensor(SelectLearningFeatures().execute(state))
-                state_feat_torch[2][0] = action
-                _, q_value = self._select_eps_greedy_action(self.model.forward(*state_feat_torch))
+                _, q_value = self._select_eps_greedy_action(
+                    self.model.forward(*state_feat_torch), epsilon_exploration_rate=0
+                )
                 q_values.append((action, q_value.item()))
-        return [action for action, _ in sorted(q_values, key=lambda ele: ele[1])[:2]]
+        return [action for action, _ in sorted(q_values, key=lambda ele: ele[1], reverse=True)[:2]]
 
     def q_max(self, state: GenericFeatures):
         with torch.no_grad():
@@ -77,13 +102,13 @@ class DQNAgent:
             )
             return q_value.item()
 
-    @staticmethod
     def _select_eps_greedy_action(
+        self,
         q_for_playable_cards: torch.Tensor,
-        epsilon_exploration_rate: float = EPSILON_EXPLORATION_RATE,
+        epsilon_exploration_rate: float = EPSILON_EXPLORATION_RATE_CARD_PLAY,
     ):
         non_masked_indices = torch.nonzero(q_for_playable_cards)
-        if random.random() < epsilon_exploration_rate:
+        if not self._deterministic_behavior and random.random() < epsilon_exploration_rate:
             selected_action = non_masked_indices[np.random.randint(0, non_masked_indices.size(0))]
         else:
             selected_action = non_masked_indices[q_for_playable_cards[non_masked_indices].argmax()]
@@ -106,5 +131,5 @@ class DQNAgent:
             torch.tensor(state_feat[2], requires_grad=True, dtype=torch.float32),
         )
 
-    def set_deterministic_action_choice(self, deterministic: bool):
-        self._deterministic_action_choice = deterministic
+    def set_deterministic_behavior(self, deterministic: bool):
+        self._deterministic_behavior = deterministic
