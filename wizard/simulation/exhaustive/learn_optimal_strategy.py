@@ -47,7 +47,7 @@ survey = SurveySimulationResult(
     learning_player_id=learning_player.identifier,
     number_of_cards_per_player=NUMBER_OF_CARDS_PER_PLAYER,
 )
-surveyed_simulation_result = survey.evaluate_optimal_strategy()
+surveyed_simulation_result = survey.compute_optimal_strategy()
 
 SimulationResultStorage().save_simulation_result(
     simulation_result=surveyed_simulation_result,

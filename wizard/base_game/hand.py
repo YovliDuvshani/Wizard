@@ -5,7 +5,7 @@ from wizard.base_game.card import Card
 DELIMITER_COMBINED_REPRESENTATION = " - "
 
 
-class ListCards:
+class Hand:
     def __init__(self, cards: List[Card]):
         self.cards = cards
 
@@ -31,8 +31,8 @@ class ListCards:
         return list_cards
 
 
-def list_cards_to_representation_decorator(func):
-    def inner(*args):
-        return ListCards(func(*args)).to_single_representation()
-
-    return inner
+# def hand_to_representation_decorator(func):
+#     def inner(*args):
+#         return Hand(func(*args)).to_single_representation()
+#
+#     return inner

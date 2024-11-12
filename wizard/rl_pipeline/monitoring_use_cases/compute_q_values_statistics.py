@@ -120,9 +120,7 @@ elif NUMBER_OF_CARDS_PER_PLAYER == 2:
             point_size=15,
             filtering_with_name=(
                 "prediction-step",
-                lambda df: df[
-                    (df["IS_PREDICTION_STEP"] == 1)
-                ],
+                lambda df: df[(df["IS_PREDICTION_STEP"] == 1)],
             ),
         ),
     ]
@@ -150,7 +148,7 @@ class ComputeQValuesStatistics(MonitoringUseCase):
             state = self._env.reset()[0]
             while not terminal:
                 action = self._agent.select_action(state)
-                state = self._agent.update_state_to_action_state_for_prediction_phase(state, action)
+                state = self._agent.update_state_to_action_state_for_prediction_phase_only(state, action)
 
                 states.append(state)
                 q_values.append(self._agent.q_max(state))
@@ -177,9 +175,15 @@ class ComputeQValuesStatistics(MonitoringUseCase):
                 for card in sorted([Card.from_representation(card) for card in list_card_representations], reverse=True)
             ]
         )
-        feature_df_with_q["FIRST_CARD_REPRESENTATION"] = feature_df_with_q["SORTED_CARDS_REPRESENTATION"].apply(lambda list_card_representations: list_card_representations[0])
+        feature_df_with_q["FIRST_CARD_REPRESENTATION"] = feature_df_with_q["SORTED_CARDS_REPRESENTATION"].apply(
+            lambda list_card_representations: list_card_representations[0]
+        )
 
-        feature_df_with_q["SECOND_CARD_REPRESENTATION"] = feature_df_with_q["SORTED_CARDS_REPRESENTATION"].apply(lambda list_card_representations: list_card_representations[1] if len(list_card_representations) > 1 else None)
+        feature_df_with_q["SECOND_CARD_REPRESENTATION"] = feature_df_with_q["SORTED_CARDS_REPRESENTATION"].apply(
+            lambda list_card_representations: (
+                list_card_representations[1] if len(list_card_representations) > 1 else None
+            )
+        )
         feature_df_with_q["FIRST_CARD"] = feature_df_with_q["FIRST_CARD_REPRESENTATION"].apply(
             lambda representation: Card.from_representation(representation)
         )
@@ -188,7 +192,7 @@ class ComputeQValuesStatistics(MonitoringUseCase):
     def _create_and_log_plots(self, feature_df_with_q: pd.DataFrame, epoch: int):
         for plot_def in Q_VALUES_PLOT_DEFINITIONS:
             fig = self._create_plot(plot_def, feature_df_with_q)
-            fig.update_traces(marker={'size': plot_def.point_size})
+            fig.update_traces(marker={"size": plot_def.point_size})
             self._log_plot_in_tensorboard(fig, epoch, plot_def.name)
 
     @staticmethod

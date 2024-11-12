@@ -16,7 +16,7 @@ Terminal = bool
 
 @dataclass
 class GameDefinition:
-    initial_player_starting: Player
+    initial_starting_player: Player
     trump_card_removed: Card
     players: List[Player]
     deck: Deck
@@ -25,7 +25,7 @@ class GameDefinition:
 @dataclass
 class GameRoundSpecifics:
     turn_history: List[PlayedCard]
-    player_starting: Player
+    starting_player: Player
     number_cards_played: int
     starting_color: Optional[str] = None
 
@@ -56,7 +56,7 @@ class Game:
         starting_player = starting_player if starting_player else random.choice(players)
 
         self.definition = GameDefinition(
-            initial_player_starting=starting_player,
+            initial_starting_player=starting_player,
             trump_card_removed=trump_card_removed,
             players=players,
             deck=deck,
@@ -71,6 +71,11 @@ class Game:
         terminal = self._play_next_card(print_results=print_results)
         while not terminal:
             terminal = self._play_next_card(print_results=print_results)
+
+    def reset_game(self) -> None:
+        self._initialize_game_state()
+        for player in self.definition.players:
+            player.reset_hand()
 
     def get_to_prediction_state_for_given_player(self, player: Player):
         for next_player_predicting in self.ordered_list_players:
@@ -132,7 +137,7 @@ class Game:
             winner_history=[],
             round_specifics=GameRoundSpecifics(
                 turn_history=[],
-                player_starting=self.definition.initial_player_starting,
+                starting_player=self.definition.initial_starting_player,
                 number_cards_played=0,
                 starting_color=None,
             ),
@@ -170,19 +175,19 @@ class Game:
                 played_cards=self.state.round_specifics.turn_history, winner=winner
             )
 
-        self.state.round_specifics.player_starting = winner.player
+        self.state.round_specifics.starting_player = winner.player
         self.state.round_specifics.turn_history = []
         self.state.round_specifics.starting_color = None
         self.state.round_specifics.number_cards_played = 0
 
     @property
     def ordered_list_players(self) -> List[Player]:
-        index_starting_player = self.definition.players.index(self.state.round_specifics.player_starting)
+        index_starting_player = self.definition.players.index(self.state.round_specifics.starting_player)
         return self.definition.players[index_starting_player:] + self.definition.players[:index_starting_player]
 
     @property
     def initial_ordered_list_players(self) -> List[Player]:
-        index_initial_starting_player = self.definition.players.index(self.definition.initial_player_starting)
+        index_initial_starting_player = self.definition.players.index(self.definition.initial_starting_player)
         return (
             self.definition.players[index_initial_starting_player:]
             + self.definition.players[:index_initial_starting_player]
@@ -191,11 +196,6 @@ class Game:
     @property
     def next_player_playing(self):
         return self.ordered_list_players[self.state.round_specifics.number_cards_played]
-
-    def reset_game(self) -> None:
-        self._initialize_game_state()
-        for player in self.definition.players:
-            player.reset_hand()
 
 
 class GameDisplayer:

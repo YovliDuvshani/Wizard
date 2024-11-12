@@ -106,7 +106,7 @@ class Player:
         trump_card_removed = self.game.definition.trump_card_removed
         possible_cards = Deck()
         possible_cards.remove_cards(other_players_cards + [trump_card_removed])
-        possible_cards = possible_cards.filter_deck(
+        possible_cards = possible_cards.filtered_cards(
             colors=list(set(BASE_COLORS) - set(self.colors_known_to_not_be_in_hand))
         )
         self.cards = random.sample(possible_cards, len(self.cards))

@@ -11,6 +11,7 @@ from wizard.base_game.game import Game, Terminal
 from wizard.base_game.player.player import Player
 from wizard.rl_pipeline.features.compute_generic_features import ComputeGenericFeatures
 from wizard.rl_pipeline.features.observation_space import OBSERVATION_SPACE
+from wizard.rl_pipeline.type import Action
 
 
 class SinglePlayerLearningEnv(Env):
@@ -25,7 +26,7 @@ class SinglePlayerLearningEnv(Env):
 
         self._game: Game | None = None
 
-    def step(self, action: ActType) -> tuple[OBSERVATION_SPACE, int, bool, bool, dict[str, Any]]:
+    def step(self, action: Action) -> tuple[OBSERVATION_SPACE, int, bool, bool, dict[str, Any]]:
         if isinstance(action, int):
             self._game.set_prediction_for_given_player(self._learning_player, action)
             terminal = self._game.get_to_first_play_afterstate_for_given_player(self._learning_player)

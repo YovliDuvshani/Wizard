@@ -24,27 +24,16 @@ class SimulationResultStorage:
         simulation_result_metadata: SimulationResultMetadata,
         simulation_type: SimulationResultType,
     ):
-        path = self._get_path(simulation_result_metadata, simulation_type)
+        path = self._get_path_from_metadata(simulation_result_metadata, simulation_type)
         Path(path).parent.mkdir(parents=True, exist_ok=True)
         simulation_result.to_csv(path)
 
     def read_given_simulation_result(
         self, simulation_result_metadata: SimulationResultMetadata, simulation_type: SimulationResultType
     ):
-        return pd.read_csv(self._get_path(simulation_result_metadata, simulation_type))
+        return pd.read_csv(self._get_path_from_metadata(simulation_result_metadata, simulation_type))
 
-    def _get_path(self, simulation_result_metadata: SimulationResultMetadata, simulation_type: SimulationResultType):
-        return (
-            f"{self.BASE_PATH}"
-            f"number_of_players={simulation_result_metadata.number_of_players}/"
-            f"number_cards_per_player={simulation_result_metadata.number_of_cards_per_player}/"
-            f"learning_player_position={simulation_result_metadata.learning_player_id}/"
-            f"{simulation_type.value}/"
-            f"{simulation_result_metadata.total_number_trial}_trials_"
-            f"id_{simulation_result_metadata.simulation_id}.csv"
-        )
-
-    def read_surveyed_simulation_result_based_on_current_configuration(self, player_position: int):
+    def read_most_relevant_surveyed_simulation_result_based_on_current_configuration(self, player_position: int):
         folder_path = (
             f"{self.BASE_PATH}"
             f"number_of_players={NUMBER_OF_PLAYERS}/"
@@ -55,6 +44,19 @@ class SimulationResultStorage:
         file_paths = os.listdir(folder_path)
         selected_file_path = max(file_paths, key=lambda file_path: int(file_path.split("_")[0]))
         return self._set_surveyed_df_predictions_as_index(pd.read_csv(folder_path + selected_file_path))
+
+    def _get_path_from_metadata(
+        self, simulation_result_metadata: SimulationResultMetadata, simulation_type: SimulationResultType
+    ):
+        return (
+            f"{self.BASE_PATH}"
+            f"number_of_players={simulation_result_metadata.number_of_players}/"
+            f"number_cards_per_player={simulation_result_metadata.number_of_cards_per_player}/"
+            f"learning_player_position={simulation_result_metadata.learning_player_id}/"
+            f"{simulation_type.value}/"
+            f"{simulation_result_metadata.total_number_trial}_trials_"
+            f"id_{simulation_result_metadata.simulation_id}.csv"
+        )
 
     @staticmethod
     def _set_surveyed_df_predictions_as_index(df: pd.DataFrame):

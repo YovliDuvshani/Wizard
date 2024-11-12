@@ -5,7 +5,7 @@ import numpy as np
 
 from config.common import NUMBER_OF_CARDS_PER_PLAYER
 from wizard.base_game.card import Card
-from wizard.base_game.list_cards import ListCards
+from wizard.base_game.hand import Hand
 from wizard.simulation.exhaustive.hand_combinations import HandCombinationsTwoCards, IMPLEMENTED_COMBINATIONS
 from wizard.simulation.exhaustive.simulation_result_storage import SimulationResultStorage
 
@@ -73,7 +73,7 @@ class StatisticalCardPlayPolicy(BaseCardPlayPolicy):
     @property
     def cards_ordered_by_priority(self) -> list[Card]:
         cards_ordered_by_priority = []
-        for placeholder_order_card in ListCards.from_single_representation(
+        for placeholder_order_card in Hand.from_single_representation(
             self._optimal_strategy.index.get_level_values("combination_played_order")[0]
         ).cards:
             for ind, placeholder_combination_card in enumerate(self._initial_hand_combination):
@@ -88,8 +88,8 @@ class StatisticalCardPlayPolicy(BaseCardPlayPolicy):
         return df.loc[
             df[
                 df.index.get_level_values("tested_combination")
-                == ListCards(self._initial_hand_combination).to_single_representation()
-            ].idxmax(),
+                == Hand(self._initial_hand_combination).to_single_representation()
+                ].idxmax(),
             :,
         ]
 
@@ -100,19 +100,18 @@ class StatisticalCardPlayPolicy(BaseCardPlayPolicy):
 
     @lru_cache
     def _adequate_surveyed_simulation_result(self, player_position: int):
-        return SimulationResultStorage().read_surveyed_simulation_result_based_on_current_configuration(player_position)
+        return SimulationResultStorage().read_most_relevant_surveyed_simulation_result_based_on_current_configuration(player_position)
 
 
 class DQNCardPlayPolicy(BaseCardPlayPolicy):
     def execute(self) -> Card:
         features = self._compute_features()
-        action = self._player.agent.select_action(features)
-        card_to_play = [card for card in self._player.cards if card.representation == action][0]
+        card_to_play_representation = self._player.agent.select_card_to_play(features)
+        card_to_play = [card for card in self._player.cards if card.representation == card_to_play_representation][0]
         return card_to_play
 
     def _compute_features(self):
         from wizard.rl_pipeline.features.compute_generic_features import (
             ComputeGenericFeatures,
         )
-
         return ComputeGenericFeatures(self._player.game, self._player).execute()

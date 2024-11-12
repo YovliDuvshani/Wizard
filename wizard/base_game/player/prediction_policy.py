@@ -4,7 +4,7 @@ from functools import lru_cache
 import numpy as np
 
 from config.common import NUMBER_OF_CARDS_PER_PLAYER
-from wizard.base_game.list_cards import ListCards
+from wizard.base_game.hand import Hand
 from wizard.simulation.exhaustive.hand_combinations import IMPLEMENTED_COMBINATIONS
 from wizard.simulation.exhaustive.simulation_result_storage import SimulationResultStorage
 
@@ -21,11 +21,10 @@ class BasePredictionPolicy(abc.ABC):
         return list(range(NUMBER_OF_CARDS_PER_PLAYER + 1))
 
     def forbidden_prediction(self) -> int | None:
-        if self._player.game.ordered_list_players[-1] is self._player and any(
-            [prediction is None for prediction in self._player.game.state.predictions.values()]
-        ):  # TODO: Simplify the condition
+        if self._player.game.initial_ordered_list_players[-1] is self._player:
             sum_of_already_announced_predictions = sum(
-                self._player.game.state.predictions[player] for player in self._player.game.ordered_list_players[:-1]
+                self._player.game.state.predictions[player]
+                for player in self._player.game.initial_ordered_list_players[:-1]
             )
             return NUMBER_OF_CARDS_PER_PLAYER - sum_of_already_announced_predictions
         return None
@@ -62,8 +61,8 @@ class StatisticalPredictionPolicy(BasePredictionPolicy):
         return df.loc[
             df[
                 df.index.get_level_values("tested_combination")
-                == ListCards(self._initial_hand_combination).to_single_representation()
-            ].idxmax(),
+                == Hand(self._initial_hand_combination).to_single_representation()
+                ].idxmax(),
             :,
         ]
 
@@ -74,21 +73,17 @@ class StatisticalPredictionPolicy(BasePredictionPolicy):
 
     @lru_cache
     def _adequate_surveyed_simulation_result(self, player_position: int):
-        return SimulationResultStorage().read_surveyed_simulation_result_based_on_current_configuration(player_position)
+        return SimulationResultStorage().read_most_relevant_surveyed_simulation_result_based_on_current_configuration(player_position)
 
 
 class DQNPredictionPolicy(BasePredictionPolicy):
     def execute(self):
         assert self._player.agent is not None, "No DQN agent provided"
         features = self._compute_features()
-        best_predictions = self._player.agent.get_predictions_sorted_by_q(features)
-        if best_predictions[0] in self.possible_predictions():
-            return best_predictions[0]
-        return best_predictions[1]
+        return self._player.agent.select_prediction(features)
 
     def _compute_features(self):
         from wizard.rl_pipeline.features.compute_generic_features import (
             ComputeGenericFeatures,
         )
-
         return ComputeGenericFeatures(self._player.game, self._player).execute()

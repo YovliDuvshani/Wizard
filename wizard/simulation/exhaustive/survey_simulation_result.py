@@ -4,7 +4,7 @@ import pandas as pd
 
 from config.common import NUMBER_OF_CARDS_PER_PLAYER
 from wizard.base_game.count_points import CountPoints
-from wizard.base_game.list_cards import ListCards
+from wizard.base_game.hand import Hand
 from wizard.simulation.exhaustive.constants import COMBINATION_INDEXES
 
 
@@ -19,26 +19,22 @@ class SurveySimulationResult:
         self.simulation_results = simulation_results
         self.number_of_cards_per_player = number_of_cards_per_player
 
-    def evaluate_optimal_strategy(self):
-        return self.sort_per_combination(
+    def compute_optimal_strategy(self):
+        return self._sort_per_combination(
             pd.concat(
                 [
-                    self.evaluate_optimal_strategy_for_given_prediction(evaluated_prediction=prediction)
+                    self._evaluate_optimal_strategy_for_given_prediction(evaluated_prediction=prediction)
                     .rename(columns={"score": f"score_prediction_{prediction}"})
                     .set_index(COMBINATION_INDEXES)
-                    for prediction in self.evaluated_predictions
+                    for prediction in self._evaluated_predictions
                 ],
                 axis=1,
                 join="inner",
             ).reset_index()
         ).set_index(["tested_combination"])
 
-    @property
-    def evaluated_predictions(self):
-        return list(range(self.number_of_cards_per_player + 1))
-
-    def evaluate_optimal_strategy_for_given_prediction(self, evaluated_prediction: int):
-        simulation_results_with_score = self.simulation_results_with_score_for_given_prediction(
+    def _evaluate_optimal_strategy_for_given_prediction(self, evaluated_prediction: int):
+        simulation_results_with_score = self._simulation_results_with_score_for_given_prediction(
             prediction=evaluated_prediction
         )
         worst_outcome_per_trial_per_order = (
@@ -51,7 +47,7 @@ class SurveySimulationResult:
 
         return mean_worst_outcome_per_order
 
-    def simulation_results_with_score_for_given_prediction(self, prediction: int):
+    def _simulation_results_with_score_for_given_prediction(self, prediction: int):
         simulation_results = self.simulation_results.copy()
         simulation_results["score"] = simulation_results["number_of_turns_won"].apply(
             lambda row: CountPoints().count_points_single_prediction(
@@ -61,10 +57,14 @@ class SurveySimulationResult:
         return simulation_results
 
     @staticmethod
-    def sort_per_combination(simulation_results: pd.DataFrame):
+    def _sort_per_combination(simulation_results: pd.DataFrame):
         simulation_results["tested_combination_in_card_format"] = simulation_results["tested_combination"].apply(
-            lambda representation: ListCards.from_single_representation(representation=representation).cards
+            lambda representation: Hand.from_single_representation(representation=representation).cards
         )
         return simulation_results.sort_values("tested_combination_in_card_format", ascending=False).drop(
             columns="tested_combination_in_card_format"
         )
+
+    @property
+    def _evaluated_predictions(self):
+        return list(range(self.number_of_cards_per_player + 1))

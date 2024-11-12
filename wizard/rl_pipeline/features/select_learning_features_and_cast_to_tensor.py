@@ -1,6 +1,7 @@
 from dataclasses import dataclass, fields
 
 import numpy as np
+import torch
 
 from wizard.rl_pipeline.features.data_cls import (
     FeatureGroups,
@@ -13,11 +14,11 @@ from wizard.rl_pipeline.features.data_cls import (
 from wizard.rl_pipeline.features.used_features import USED_FEATURES
 
 
-class SelectLearningFeatures:
+class SelectLearningFeaturesAndCastToTensor:
     def execute(self, generic_features: GenericFeatures) -> tuple[
-        dict[str, np.ndarray],
-        np.ndarray,
-        np.ndarray,
+        dict[str, torch.Tensor],
+        torch.Tensor,
+        torch.Tensor,
     ]:
         card_features = {
             card: self._select_and_cast_features_of_given_group(
@@ -35,12 +36,14 @@ class SelectLearningFeatures:
 
     def _select_and_cast_features_of_given_group(
         self, features: FeatureGroups, feature_group: FeatureGroupTypes
-    ) -> np.ndarray:
-        return np.array(
+    ) -> torch.Tensor:
+        return torch.tensor(
             self._convert_dataclass_to_float_tuple(
                 datacls_instance=features,
                 attr_subset=[feat.name for feat in USED_FEATURES if feat.group == feature_group],
-            )
+            ),
+            requires_grad=True,
+            dtype=torch.float32,
         )
 
     @staticmethod

@@ -9,11 +9,19 @@ from config.common import NUMBER_OF_CARDS_PER_PLAYER
 from wizard.base_game.card import Card
 from wizard.base_game.deck import Deck
 from wizard.base_game.game import Game
-from wizard.base_game.list_cards import ListCards
+from wizard.base_game.hand import Hand
 from wizard.base_game.player.player import DefinedStrategyPlayer
-from wizard.common import iterator_to_list_of_list
+from wizard.simulation.utils import iterator_to_list_of_list
 from wizard.simulation.exhaustive.hand_combinations import IMPLEMENTED_COMBINATIONS
 from wizard.simulation.exhaustive.simulation_result import SimulationResult
+
+
+class CombinationNotImplemented(Exception):
+    pass
+
+
+class LearningPlayerNotPlaying(Exception):
+    pass
 
 
 class Simulator(abc.ABC):
@@ -103,10 +111,10 @@ class SimulatorWithOneLearningPlayer(Simulator):
         result_logger.append(
             SimulationResult(
                 trial_number=trial_number,
-                tested_combination=ListCards(
+                tested_combination=Hand(
                     cards=playing_order[self._players.index(self._learning_player)]
                 ).to_single_representation(sort=True),
-                combination_played_order=ListCards(
+                combination_played_order=Hand(
                     cards=playing_order[self._players.index(self._learning_player)]
                 ).to_single_representation(sort=False),
                 number_of_turns_won={
@@ -115,10 +123,3 @@ class SimulatorWithOneLearningPlayer(Simulator):
             )
         )
 
-
-class CombinationNotImplemented(Exception):
-    pass
-
-
-class LearningPlayerNotPlaying(Exception):
-    pass

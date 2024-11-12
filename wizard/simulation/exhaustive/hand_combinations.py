@@ -5,7 +5,7 @@ from typing import List, Optional
 from config.common import BASE_COLORS, JESTER_NAME, MAGICIAN_NAME, TRUMP_COLOR
 from wizard.base_game.card import Card
 from wizard.base_game.deck import Deck
-from wizard.common import iterator_to_list_of_list
+from wizard.simulation.utils import iterator_to_list_of_list
 
 
 class HandCombinations(abc.ABC):
@@ -55,21 +55,25 @@ class HandCombinationsTwoCards(HandCombinations):
         return two_magicians + two_jesters
 
     def _get_combinations_trump_joker(self) -> List[List[Card]]:
-        only_trumps_and_joker = self.deck.filter_deck(
+        only_trumps_and_joker = self.deck.filtered_cards(
             colors=[TRUMP_COLOR], keep_joker=True, keep_joker_duplicates=False
         )
         return self._get_all_subset_size_n(list_cards=only_trumps_and_joker, n=2)
 
     def _get_combinations_one_trump_joker_one_other(self) -> List[List[Card]]:
-        only_trumps_and_joker = self.deck.filter_deck(
+        only_trumps_and_joker = self.deck.filtered_cards(
             colors=[TRUMP_COLOR], keep_joker=True, keep_joker_duplicates=False
         )
-        only_one_color = self.deck.filter_deck(colors=[BASE_COLORS[1]], keep_joker=False, keep_joker_duplicates=False)
+        only_one_color = self.deck.filtered_cards(
+            colors=[BASE_COLORS[1]], keep_joker=False, keep_joker_duplicates=False
+        )
         return iterator_to_list_of_list(itertools.product(only_trumps_and_joker, only_one_color))
 
     def _get_combinations_two_others(self) -> List[List[Card]]:
-        only_one_color = self.deck.filter_deck(colors=[BASE_COLORS[1]], keep_joker=False, keep_joker_duplicates=False)
-        only_one_other_color = self.deck.filter_deck(
+        only_one_color = self.deck.filtered_cards(
+            colors=[BASE_COLORS[1]], keep_joker=False, keep_joker_duplicates=False
+        )
+        only_one_other_color = self.deck.filtered_cards(
             colors=[BASE_COLORS[2]], keep_joker=False, keep_joker_duplicates=False
         )
 
