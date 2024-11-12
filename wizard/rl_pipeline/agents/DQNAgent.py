@@ -13,7 +13,7 @@ from wizard.rl_pipeline.features.select_learning_features_and_cast_to_tensor imp
     SelectLearningFeaturesAndCastToTensor,
 )
 from wizard.rl_pipeline.models.multi_step_ann import MultiStepANN
-from wizard.rl_pipeline.type import Action
+from wizard.rl_pipeline.type import Action, ActionType
 
 
 class DQNAgent:
@@ -32,6 +32,7 @@ class DQNAgent:
         next_state: GenericFeatures,
         reward: int,
     ):
+        state = self.update_state_to_action_state_for_prediction_phase_only(state, action)
         q_state = self._get_q_state(state, action)
         q_next_state = self._get_q_next_state(next_state)
 
@@ -46,16 +47,16 @@ class DQNAgent:
         return (loss * self.NUMBER_GRAD_ACCUMULATION_STEPS).pow(0.5).item()
 
     @staticmethod
-    def update_state_to_action_state_for_prediction_phase_only(state: GenericFeatures, action: Action):
-        if isinstance(action, int):
+    def update_state_to_action_state_for_prediction_phase_only(state: GenericFeatures, action: Action) -> GenericFeatures:
+        if action.is_prediction:
             state = deepcopy(state)
-            state.generic_objective_context.NUMBER_ROUNDS_TO_WIN = action
+            state.generic_objective_context.NUMBER_ROUNDS_TO_WIN = action.value
         return state
 
     def select_action(self, state: GenericFeatures) -> Action:
-        if state.generic_objective_context.IS_PREDICTION_STEP == 1:
-            return self.select_prediction(state)
-        return self.select_card_to_play(state)
+        if state.is_prediction_step:
+            return Action(ActionType.Prediction, self.select_prediction(state))
+        return Action(ActionType.CardToPlay, self.select_card_to_play(state))
 
     def select_prediction(self, state: GenericFeatures) -> int:
         predictions_sorted_by_priority = self._get_predictions_sorted_by_priority(state)
@@ -83,15 +84,13 @@ class DQNAgent:
         self._deterministic_behavior = deterministic
 
     def _get_q_state(self, state: GenericFeatures, action: Action) -> torch.Tensor:
-        state = self.update_state_to_action_state_for_prediction_phase_only(state, action)
         state_feat_torch = SelectLearningFeaturesAndCastToTensor().execute(state)
 
-        if isinstance(action, str):
-            return self.model.forward(*state_feat_torch)[Card.from_representation(action).id]
-        elif isinstance(action, int):
-            return self._select_card_play_eps_greedy_action(
-                self.model.forward(*state_feat_torch), epsilon_exploration_rate=0
-            )[1]
+        if action.is_card_to_play:
+            return self.model.forward(*state_feat_torch)[Card.from_representation(action.value).id]
+        return self._select_card_play_eps_greedy_action(
+            self.model.forward(*state_feat_torch), epsilon_exploration_rate=0
+        )[1]
 
     def _get_q_next_state(self, next_state: GenericFeatures) -> torch.Tensor:
         with torch.no_grad():

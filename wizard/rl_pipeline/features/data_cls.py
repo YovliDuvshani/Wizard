@@ -55,6 +55,11 @@ class GenericFeatures:
     generic_cards_context: GenericCardsContextFeatures
     generic_objective_context: GenericObjectiveContextFeatures
 
+    @property
+    def is_prediction_step(self):
+        return self.generic_objective_context.IS_PREDICTION_STEP == 1
+
+
 
 FeatureGroups = GenericCardSpecificFeatures | GenericCardsContextFeatures | GenericObjectiveContextFeatures
 

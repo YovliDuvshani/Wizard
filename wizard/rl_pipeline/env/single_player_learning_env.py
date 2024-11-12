@@ -27,11 +27,11 @@ class SinglePlayerLearningEnv(Env):
         self._game: Game | None = None
 
     def step(self, action: Action) -> tuple[OBSERVATION_SPACE, int, bool, bool, dict[str, Any]]:
-        if isinstance(action, int):
-            self._game.set_prediction_for_given_player(self._learning_player, action)
+        if action.is_prediction:
+            self._game.set_prediction_for_given_player(self._learning_player, action.value)
             terminal = self._game.get_to_first_play_afterstate_for_given_player(self._learning_player)
         else:
-            terminal = self._game.get_to_next_play_afterstate_for_given_player(self._learning_player, action)
+            terminal = self._game.get_to_next_play_afterstate_for_given_player(self._learning_player, action.value)
         reward = self._get_reward(terminal)
         return (
             ComputeGenericFeatures(self._game, self._learning_player).execute(),
