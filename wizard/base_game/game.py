@@ -82,7 +82,7 @@ class Game:
         self.state.predictions[player] = prediction if prediction is not None else player.make_prediction()
 
     def get_to_first_play_afterstate_for_given_player(self, player: Player) -> Terminal:
-        for next_player_predicting in self.ordered_list_players[self.ordered_list_players.index(player) + 1:]:
+        for next_player_predicting in self.ordered_list_players[self.ordered_list_players.index(player) + 1 :]:
             self.state.predictions[next_player_predicting] = next_player_predicting.make_prediction()
         while self.next_player_playing != player:
             self._play_next_card(print_results=False)
@@ -179,6 +179,14 @@ class Game:
     def ordered_list_players(self) -> List[Player]:
         index_starting_player = self.definition.players.index(self.state.round_specifics.player_starting)
         return self.definition.players[index_starting_player:] + self.definition.players[:index_starting_player]
+
+    @property
+    def initial_ordered_list_players(self) -> List[Player]:
+        index_initial_starting_player = self.definition.players.index(self.definition.initial_player_starting)
+        return (
+            self.definition.players[index_initial_starting_player:]
+            + self.definition.players[:index_initial_starting_player]
+        )
 
     @property
     def next_player_playing(self):

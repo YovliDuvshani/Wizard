@@ -13,7 +13,7 @@ from wizard.base_game.player.card_play_policy import (
     LowestCardPlayPolicy,
     RandomCardPlayPolicy,
 )
-from wizard.base_game.player.player import Player, RandomPlayer
+from wizard.base_game.player.player import Player, RandomPlayer, DQNPlayer
 from wizard.base_game.player.prediction_policy import (
     DefinedPredictionPolicy,
     DQNPredictionPolicy,
@@ -22,7 +22,6 @@ from wizard.base_game.player.prediction_policy import (
 from wizard.rl_pipeline.agents.DQNAgent import DQNAgent
 from wizard.rl_pipeline.constants import TENSORBOARD_OUTPUT_DIRECTORY
 from wizard.rl_pipeline.env.single_player_learning_env import SinglePlayerLearningEnv
-from wizard.rl_pipeline.models.base_ann import BaseANN
 from wizard.rl_pipeline.models.multi_step_ann import ANNSpecification, MultiStepANN
 from wizard.rl_pipeline.monitoring_use_cases.compare_policies_rewards import ComparePoliciesRewards
 from wizard.rl_pipeline.monitoring_use_cases.compute_q_values_statistics import ComputeQValuesStatistics
@@ -32,10 +31,10 @@ from wizard.rl_pipeline.monitoring_use_cases.save_model import SaveModel
 from wizard.rl_pipeline.train_pipeline.base_train_pipeline import BaseTrainPipeline
 
 model = MultiStepANN(
-    card_ann_specification=ANNSpecification(hidden_layers_size=[50, 50, 50], output_size=50),
-    hand_ann_specification=ANNSpecification(hidden_layers_size=[50, 50], output_size=1),
-    strategy_ann_specification=ANNSpecification(hidden_layers_size=[100, 100], output_size=100),
-    q_ann_specification=ANNSpecification(hidden_layers_size=[100, 100, 100]),
+    card_ann_specification=ANNSpecification(hidden_layers_size=[200, 200, 200], output_size=50),
+    hand_ann_specification=ANNSpecification(hidden_layers_size=[200, 200, 200], output_size=50),
+    strategy_ann_specification=ANNSpecification(hidden_layers_size=[200, 200], output_size=100),
+    q_ann_specification=ANNSpecification(hidden_layers_size=[500, 500, 500]),
 )
 # model = BaseANN(ANNSpecification(hidden_layers_size=[100, 100]))
 
@@ -48,12 +47,12 @@ learning_player = Player(
     agent=agent,
     # set_prediction=1,
 )
-players = [learning_player] + [RandomPlayer(i) for i in range(1, NUMBER_OF_PLAYERS)]
-starting_player = None
+players = [learning_player] + [DQNPlayer(i, agent=agent) for i in range(1, NUMBER_OF_PLAYERS)]
+starting_player = learning_player
 
 env = SinglePlayerLearningEnv(players=players, learning_player=learning_player, starting_player=starting_player)
 
-NUMBER_OF_EPOCHS = 50_000
+NUMBER_OF_EPOCHS = 10_000
 
 # profiler = Profiler()
 # profiler.start()
@@ -81,6 +80,7 @@ challenger_players_with_label = {
 }
 starting_player_position = players.index(starting_player) if starting_player else None
 monitoring_use_cases = [
+    ComputeQValuesStatistics(frequency=10_000, writer=writer, env=env, agent=agent, number_of_games=500),
     CreateANNGraph(frequency=NUMBER_OF_EPOCHS + 1, writer=writer, env=env, agent=agent),
     LogLoss(frequency=1, writer=writer),
     SaveModel(frequency=10_000, writer=writer, agent=agent, run_id=uuid.uuid4()),
@@ -95,12 +95,11 @@ monitoring_use_cases = [
     ComparePoliciesRewards(
         frequency=5_000,
         writer=writer,
-        number_of_simulated_games=200,
+        number_of_simulated_games=500,
         challenger_players_with_label=challenger_players_with_label,
         starting_player_position=starting_player_position,
         tensorboard_name="Avg Reward on Test Set",
     ),
-    ComputeQValuesStatistics(frequency=10_000, writer=writer, env=env, agent=agent, number_of_games=500),
 ]
 
 

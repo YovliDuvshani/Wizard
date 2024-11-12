@@ -8,6 +8,7 @@ from torch.utils.tensorboard import SummaryWriter
 import io
 from PIL import Image
 
+from config.common import NUMBER_OF_CARDS_PER_PLAYER
 from wizard.base_game.card import Card
 from wizard.rl_pipeline.agents.DQNAgent import DQNAgent
 from wizard.rl_pipeline.constants import BASE_WIDTH, BASE_HEIGHT
@@ -28,6 +29,9 @@ class QValuesPlotDefinition:
     facet_row: str | None = None
     facet_col: str | None = None
     sorting_cols: list[str] | None = None
+    height: int | None = BASE_HEIGHT
+    width: int | None = BASE_WIDTH
+    point_size: int | None = None
     filtering_with_name: tuple[str, Callable[[pd.DataFrame], pd.DataFrame]] | None = None
 
     @property
@@ -38,41 +42,90 @@ class QValuesPlotDefinition:
         )
 
 
-Q_VALUES_PLOT_DEFINITIONS = [
-    QValuesPlotDefinition(
-        plot_func=px.scatter,
-        x="FIRST_CARD_REPRESENTATION",
-        y="Q_VALUES",
-        facet_col="NUMBER_ROUNDS_TO_WIN",
-        facet_row="PLAYER_POSITION",
-        sorting_cols=["FIRST_CARD"],
-        filtering_with_name=("only_prediction_step", lambda df: df[df["IS_PREDICTION_STEP"] == 1]),
-    ),
-    QValuesPlotDefinition(
-        plot_func=px.scatter,
-        x="FIRST_CARD_REPRESENTATION",
-        y="Q_VALUES",
-        facet_row="PLAYER_POSITION",
-        facet_col="CAN_WIN_CURRENT_SUB_ROUND",
-        sorting_cols=["FIRST_CARD"],
-        filtering_with_name=(
-            "prediction=0",
-            lambda df: df[(df["IS_PREDICTION_STEP"] == -1) & (df["NUMBER_ROUNDS_TO_WIN"] == 0)],
+if NUMBER_OF_CARDS_PER_PLAYER == 1:
+    Q_VALUES_PLOT_DEFINITIONS = [
+        QValuesPlotDefinition(
+            plot_func=px.scatter,
+            x="FIRST_CARD_REPRESENTATION",
+            y="Q_VALUES",
+            facet_col="NUMBER_ROUNDS_TO_WIN",
+            facet_row="PLAYER_POSITION",
+            sorting_cols=["FIRST_CARD"],
+            filtering_with_name=("only_prediction_step", lambda df: df[df["IS_PREDICTION_STEP"] == 1]),
         ),
-    ),
-    QValuesPlotDefinition(
-        plot_func=px.scatter,
-        x="FIRST_CARD_REPRESENTATION",
-        y="Q_VALUES",
-        facet_row="PLAYER_POSITION",
-        facet_col="CAN_WIN_CURRENT_SUB_ROUND",
-        sorting_cols=["FIRST_CARD"],
-        filtering_with_name=(
-            "prediction=1",
-            lambda df: df[(df["IS_PREDICTION_STEP"] == -1) & (df["NUMBER_ROUNDS_TO_WIN"] == 1)],
+        QValuesPlotDefinition(
+            plot_func=px.scatter,
+            x="FIRST_CARD_REPRESENTATION",
+            y="Q_VALUES",
+            facet_row="PLAYER_POSITION",
+            facet_col="CAN_WIN_CURRENT_SUB_ROUND",
+            sorting_cols=["FIRST_CARD"],
+            filtering_with_name=(
+                "prediction=0",
+                lambda df: df[(df["IS_PREDICTION_STEP"] == -1) & (df["NUMBER_ROUNDS_TO_WIN"] == 0)],
+            ),
         ),
-    ),
-]
+        QValuesPlotDefinition(
+            plot_func=px.scatter,
+            x="FIRST_CARD_REPRESENTATION",
+            y="Q_VALUES",
+            facet_row="PLAYER_POSITION",
+            facet_col="CAN_WIN_CURRENT_SUB_ROUND",
+            sorting_cols=["FIRST_CARD"],
+            filtering_with_name=(
+                "prediction=1",
+                lambda df: df[(df["IS_PREDICTION_STEP"] == -1) & (df["NUMBER_ROUNDS_TO_WIN"] == 1)],
+            ),
+        ),
+        QValuesPlotDefinition(
+            plot_func=px.scatter,
+            x="FIRST_CARD_REPRESENTATION",
+            y="Q_VALUES",
+            facet_row="PLAYER_0_PREDICTION",
+            color="NUMBER_ROUNDS_TO_WIN",
+            sorting_cols=["FIRST_CARD"],
+            filtering_with_name=(
+                "prediction=1",
+                lambda df: df[(df["PLAYER_POSITION"] == 1) & (df["IS_PREDICTION_STEP"] == 1)],
+            ),
+        ),
+    ]
+elif NUMBER_OF_CARDS_PER_PLAYER == 2:
+    Q_VALUES_PLOT_DEFINITIONS = [
+        QValuesPlotDefinition(
+            plot_func=px.scatter,
+            x="FIRST_CARD_REPRESENTATION",
+            y="Q_VALUES",
+            facet_row="PLAYER_POSITION",
+            facet_col="CAN_WIN_CURRENT_SUB_ROUND",
+            sorting_cols=["FIRST_CARD"],
+            filtering_with_name=(
+                "prediction=0_number_of_cards=1",
+                lambda df: df[
+                    (df["IS_PREDICTION_STEP"] == -1)
+                    & (df["NUMBER_ROUNDS_TO_WIN"] == 0)
+                    & (df["NUMBER_CARDS_REMAINING_IN_PLAYER_HAND"] == 1)
+                ],
+            ),
+        ),
+        QValuesPlotDefinition(
+            plot_func=px.scatter,
+            x="FIRST_CARD_REPRESENTATION",
+            y="SECOND_CARD_REPRESENTATION",
+            color="Q_VALUES",
+            facet_row="NUMBER_ROUNDS_TO_WIN",
+            facet_col="PLAYER_POSITION",
+            sorting_cols=["FIRST_CARD"],
+            height=BASE_HEIGHT * 3,
+            point_size=15,
+            filtering_with_name=(
+                "prediction-step",
+                lambda df: df[
+                    (df["IS_PREDICTION_STEP"] == 1)
+                ],
+            ),
+        ),
+    ]
 
 
 class ComputeQValuesStatistics(MonitoringUseCase):
@@ -117,9 +170,16 @@ class ComputeQValuesStatistics(MonitoringUseCase):
         feature_df_with_q["CAN_WIN_CURRENT_SUB_ROUND"] = [
             list(state.generic_card_specific.values())[0].CAN_WIN_CURRENT_SUB_ROUND for state in states
         ]
-        feature_df_with_q["FIRST_CARD_REPRESENTATION"] = [
-            list(state.generic_card_specific.keys())[0] for state in states
-        ]
+        feature_df_with_q["CARDS_REPRESENTATION"] = [list(state.generic_card_specific.keys()) for state in states]
+        feature_df_with_q["SORTED_CARDS_REPRESENTATION"] = feature_df_with_q["CARDS_REPRESENTATION"].apply(
+            lambda list_card_representations: [
+                card.representation
+                for card in sorted([Card.from_representation(card) for card in list_card_representations], reverse=True)
+            ]
+        )
+        feature_df_with_q["FIRST_CARD_REPRESENTATION"] = feature_df_with_q["SORTED_CARDS_REPRESENTATION"].apply(lambda list_card_representations: list_card_representations[0])
+
+        feature_df_with_q["SECOND_CARD_REPRESENTATION"] = feature_df_with_q["SORTED_CARDS_REPRESENTATION"].apply(lambda list_card_representations: list_card_representations[1] if len(list_card_representations) > 1 else None)
         feature_df_with_q["FIRST_CARD"] = feature_df_with_q["FIRST_CARD_REPRESENTATION"].apply(
             lambda representation: Card.from_representation(representation)
         )
@@ -128,6 +188,7 @@ class ComputeQValuesStatistics(MonitoringUseCase):
     def _create_and_log_plots(self, feature_df_with_q: pd.DataFrame, epoch: int):
         for plot_def in Q_VALUES_PLOT_DEFINITIONS:
             fig = self._create_plot(plot_def, feature_df_with_q)
+            fig.update_traces(marker={'size': plot_def.point_size})
             self._log_plot_in_tensorboard(fig, epoch, plot_def.name)
 
     @staticmethod
@@ -136,10 +197,11 @@ class ComputeQValuesStatistics(MonitoringUseCase):
             "x": plot_def.x,
             "y": plot_def.y,
             "color": plot_def.color,
+            "color_continuous_scale": "Bluered_r",
             "facet_row": plot_def.facet_row,
             "facet_col": plot_def.facet_col,
-            "width": BASE_WIDTH,
-            "height": BASE_HEIGHT,
+            "height": plot_def.height,
+            "width": plot_def.width,
         }
         if plot_def.filtering_with_name is not None:
             feature_df_with_q = feature_df_with_q.copy()

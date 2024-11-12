@@ -44,6 +44,9 @@ class GenericObjectiveContextFeatures:
     IS_TERMINAL: bool
     IS_PREDICTION_STEP: int
     FORBIDDEN_PREDICTION: int
+    PLAYER_0_PREDICTION: int
+    PLAYER_1_PREDICTION: int
+    PLAYER_2_PREDICTION: int
 
 
 @dataclass

@@ -36,11 +36,11 @@ USED_FEATURES = [
     #     Discrete(NUMBER_CARDS_PER_COLOR * 2 + 1),
     #     group=GenericCardSpecificFeatures,
     # ),
-    # FeatureDescription(
-    #     "NUMBER_CARDS_REMAINING_IN_PLAYER_HAND",
-    #     Discrete(NUMBER_OF_CARDS_PER_PLAYER + 1),
-    #     group=GenericCardsContextFeatures,
-    # ),
+    FeatureDescription(
+        "NUMBER_CARDS_REMAINING_IN_PLAYER_HAND",
+        Discrete(NUMBER_OF_CARDS_PER_PLAYER + 1),
+        group=GenericCardsContextFeatures,
+    ),
     FeatureDescription(
         "NUMBER_ROUNDS_TO_WIN",
         Discrete(NUMBER_OF_CARDS_PER_PLAYER + 1),
@@ -69,6 +69,21 @@ USED_FEATURES = [
     FeatureDescription(
         "IS_PREDICTION_STEP",
         Discrete(2),
+        group=GenericObjectiveContextFeatures,
+    ),
+    FeatureDescription(
+        "PLAYER_0_PREDICTION",
+        Discrete(NUMBER_OF_CARDS_PER_PLAYER + 1),
+        group=GenericObjectiveContextFeatures,
+    ),
+    FeatureDescription(
+        "PLAYER_1_PREDICTION",
+        Discrete(NUMBER_OF_CARDS_PER_PLAYER + 1),
+        group=GenericObjectiveContextFeatures,
+    ),
+    FeatureDescription(
+        "PLAYER_2_PREDICTION",
+        Discrete(NUMBER_OF_CARDS_PER_PLAYER + 1),
         group=GenericObjectiveContextFeatures,
     ),
 ]

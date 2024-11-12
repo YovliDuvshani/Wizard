@@ -21,7 +21,9 @@ class BasePredictionPolicy(abc.ABC):
         return list(range(NUMBER_OF_CARDS_PER_PLAYER + 1))
 
     def forbidden_prediction(self) -> int | None:
-        if self._player.game.ordered_list_players[-1] is self._player and any([prediction is None for prediction in self._player.game.state.predictions.values()]): # TODO: Simplify the condition
+        if self._player.game.ordered_list_players[-1] is self._player and any(
+            [prediction is None for prediction in self._player.game.state.predictions.values()]
+        ):  # TODO: Simplify the condition
             sum_of_already_announced_predictions = sum(
                 self._player.game.state.predictions[player] for player in self._player.game.ordered_list_players[:-1]
             )

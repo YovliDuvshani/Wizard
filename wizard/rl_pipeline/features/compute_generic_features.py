@@ -135,6 +135,21 @@ class ComputeGenericFeatures:
                 if self._player.prediction_policy(self._player).forbidden_prediction() is not None
                 else -1
             ),
+            PLAYER_0_PREDICTION=(
+                self._game.state.predictions[self._game.initial_ordered_list_players[0]]
+                if self._game.state.predictions[self._game.initial_ordered_list_players[0]] is not None
+                else -1
+            ),
+            PLAYER_1_PREDICTION=(
+                self._game.state.predictions[self._game.initial_ordered_list_players[1]]
+                if self._game.state.predictions[self._game.initial_ordered_list_players[1]] is not None
+                else -1
+            ),
+            PLAYER_2_PREDICTION=(
+                self._game.state.predictions[self._game.initial_ordered_list_players[1]]
+                if self._game.state.predictions[self._game.initial_ordered_list_players[1]] is not None
+                else -1
+            ),
         )
 
     @cached_property
