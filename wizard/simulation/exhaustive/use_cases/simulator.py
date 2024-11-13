@@ -12,7 +12,7 @@ from wizard.base_game.game import Game
 from wizard.base_game.hand import Hand
 from wizard.base_game.player.player import DefinedStrategyPlayer
 from wizard.simulation.utils import iterator_to_list_of_list
-from wizard.simulation.exhaustive.hand_combinations import IMPLEMENTED_COMBINATIONS
+from wizard.simulation.exhaustive.use_cases.hand_combinations import IMPLEMENTED_COMBINATIONS
 from wizard.simulation.exhaustive.simulation_result import SimulationResult
 
 

@@ -6,8 +6,8 @@ import numpy as np
 from config.common import NUMBER_OF_CARDS_PER_PLAYER
 from wizard.base_game.card import Card
 from wizard.base_game.hand import Hand
-from wizard.simulation.exhaustive.hand_combinations import HandCombinationsTwoCards, IMPLEMENTED_COMBINATIONS
-from wizard.simulation.exhaustive.simulation_result_storage import SimulationResultStorage
+from wizard.simulation.exhaustive.use_cases.hand_combinations import IMPLEMENTED_COMBINATIONS
+from wizard.simulation.exhaustive.use_cases.simulation_result_storage import SimulationResultStorage
 
 
 class BaseCardPlayPolicy(abc.ABC):

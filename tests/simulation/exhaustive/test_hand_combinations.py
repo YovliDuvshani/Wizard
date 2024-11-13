@@ -5,7 +5,7 @@ import pytest
 from config.common import BASE_COLORS, JESTER_NAME, TRUMP_COLOR
 from wizard.base_game.card import Card
 from wizard.base_game.deck import Deck
-from wizard.simulation.exhaustive.hand_combinations import HandCombinationsTwoCards
+from wizard.simulation.exhaustive.use_cases.hand_combinations import HandCombinationsTwoCards
 
 
 class TestHandCombinationsTwoCards:
